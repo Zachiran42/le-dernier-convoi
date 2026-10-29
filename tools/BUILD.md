@@ -35,3 +35,5 @@ Il verifie le SHA256 du WASM officiel et le motif unique de `Engine.load`, puis 
 Les notices `LICENSE`, `GODOT_LICENSE.txt`, `GODOT_THIRD_PARTY_LICENSES.txt` doivent exister a la racine et etre incluses dans la distribution. Les fichiers texte utilises dans les credits du jeu doivent aussi etre inclus par le preset d'export.
 
 Sources officielles : [release Godot](https://github.com/godotengine/godot-builds/releases/tag/4.7.2-stable), [export Android](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_android.html), [export Web](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_web.html), [mode portable](https://docs.godotengine.org/en/stable/tutorials/io/data_paths.html#self-contained-mode).
+
+Depuis 0.2.0, le conditionnement donne aussi au pack de jeu un nom `index.<sha256 court>.pck` et le configure avec l’option publique Godot `mainPack`. La copie canonique `index.pck` reste identique. Chaque nouvelle compilation change donc l’URL du contenu lorsque ses octets changent, sans modifier le moteur.
