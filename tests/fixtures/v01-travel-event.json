@@ -1,0 +1,155 @@
+{
+  "active_hero": "mira",
+  "blade": 0,
+  "crew": [
+    {
+      "hp": 100,
+      "id": "mira",
+      "max_hp": 100,
+      "name": "Mira",
+      "role": "pilote"
+    },
+    {
+      "hp": 110,
+      "id": "basile",
+      "max_hp": 110,
+      "name": "Basile",
+      "role": "mecano"
+    },
+    {
+      "hp": 85,
+      "id": "edda",
+      "max_hp": 85,
+      "name": "Edda",
+      "role": "eclaireuse"
+    }
+  ],
+  "event_resolved": false,
+  "expedition": {},
+  "hull": 95,
+  "last_notice": "Trajet payé, vivres consommés, coque −5. Un choix vous attend.",
+  "limits": {
+    "bag": 9,
+    "crew": 3,
+    "fuel": 24
+  },
+  "log": [
+    "Huit haltes avant le fort. Ramenez le butin au train ; une expédition peut être abandonnée.",
+    "Trajet payé, vivres consommés, coque −5. Un choix vous attend."
+  ],
+  "pending_event": {
+    "choices": [
+      {
+        "cost": {
+          "fuel": 2,
+          "water": 1
+        },
+        "description": "Deux carburants et une eau, coque préservée.",
+        "effects": {},
+        "id": "detour",
+        "label": "Faire le détour",
+        "requires": ""
+      },
+      {
+        "cost": {
+          "scrap": 3
+        },
+        "description": "Trois ferrailles et trois points de coque.",
+        "effects": {
+          "hull": -3
+        },
+        "id": "brace",
+        "label": "Renforcer le tablier",
+        "requires": ""
+      },
+      {
+        "cost": {},
+        "description": "Aucun matériau, mais douze points de coque perdus.",
+        "effects": {
+          "hull": -12
+        },
+        "id": "force",
+        "label": "Forcer le passage",
+        "requires": ""
+      }
+    ],
+    "context": "travel",
+    "id": "bridge",
+    "text": "Le convoi doit franchir un ravin instable.",
+    "title": "Le pont effondré"
+  },
+  "phase": "travel_event",
+  "reason": "",
+  "region": "Vallée des Cendres",
+  "resources": {
+    "ammo": 6,
+    "food": 13,
+    "fuel": 15,
+    "medicine": 2,
+    "scrap": 18,
+    "water": 8
+  },
+  "rng": 735966178,
+  "route": {
+    "base_fuel": 4,
+    "danger": 2,
+    "description": "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ.",
+    "fuel": 3,
+    "id": "halte-1-0",
+    "kind": "depot",
+    "loot": {
+      "fuel": 8
+    },
+    "name": "Dépôt des Brasiers"
+  },
+  "routes": [
+    {
+      "base_fuel": 4,
+      "danger": 2,
+      "description": "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ.",
+      "fuel": 3,
+      "id": "halte-1-0",
+      "kind": "depot",
+      "loot": {
+        "fuel": 8
+      },
+      "name": "Dépôt des Brasiers"
+    },
+    {
+      "base_fuel": 4,
+      "danger": 2,
+      "description": "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ.",
+      "fuel": 3,
+      "id": "halte-1-1",
+      "kind": "farm",
+      "loot": {
+        "food": 9
+      },
+      "name": "Vergers calcinés"
+    },
+    {
+      "base_fuel": 4,
+      "danger": 2,
+      "description": "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ.",
+      "fuel": 3,
+      "id": "halte-1-2",
+      "kind": "well",
+      "loot": {
+        "water": 9
+      },
+      "name": "Source sous la cendre"
+    }
+  ],
+  "seed": 17,
+  "step": 0,
+  "train": {
+    "slots": [
+      "empty",
+      "empty",
+      "empty"
+    ]
+  },
+  "travel_modifier": 0,
+  "turn_total": 0,
+  "version": 1
+}

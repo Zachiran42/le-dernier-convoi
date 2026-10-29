@@ -1,0 +1,702 @@
+{
+  "active_hero": "mira",
+  "blade": 0,
+  "crew": [
+    {
+      "hp": 100,
+      "id": "mira",
+      "max_hp": 100,
+      "name": "Mira",
+      "role": "pilote"
+    },
+    {
+      "hp": 110,
+      "id": "basile",
+      "max_hp": 110,
+      "name": "Basile",
+      "role": "mecano"
+    },
+    {
+      "hp": 85,
+      "id": "edda",
+      "max_hp": 85,
+      "name": "Edda",
+      "role": "eclaireuse"
+    }
+  ],
+  "event_resolved": false,
+  "expedition": {
+    "capacity": 9,
+    "carried": {
+      "ammo": 0,
+      "food": 0,
+      "fuel": 0,
+      "medicine": 0,
+      "scrap": 0,
+      "water": 0
+    },
+    "enemies": [
+      {
+        "alert": 4,
+        "boss": false,
+        "cooldown": 0,
+        "hp": 9,
+        "id": "raider-a",
+        "intent": "",
+        "intent_x": -1,
+        "intent_y": -1,
+        "max_hp": 9,
+        "stun": 0,
+        "x": 6,
+        "y": 5
+      }
+    ],
+    "exit": {
+      "x": 1,
+      "y": 5
+    },
+    "grid": [
+      [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    ],
+    "height": 11,
+    "nodes": [
+      {
+        "alternate": {
+          "ammo": 2,
+          "scrap": 5
+        },
+        "id": "objective",
+        "kind": "objective",
+        "loot": {
+          "fuel": 8
+        },
+        "name": "Réserve du poste",
+        "taken": false,
+        "x": 11,
+        "y": 5
+      },
+      {
+        "alternate": {
+          "ammo": 2
+        },
+        "id": "cache-a",
+        "kind": "cache",
+        "loot": {
+          "scrap": 3
+        },
+        "name": "Caisse abandonnée",
+        "taken": false,
+        "x": 7,
+        "y": 3
+      },
+      {
+        "alternate": {
+          "water": 2
+        },
+        "id": "cache-b",
+        "kind": "cache",
+        "loot": {
+          "food": 2
+        },
+        "name": "Sac de voyage",
+        "taken": false,
+        "x": 4,
+        "y": 7
+      }
+    ],
+    "objective_done": false,
+    "player": {
+      "facing": "E",
+      "x": 2,
+      "y": 5
+    },
+    "seen": [
+      [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    ],
+    "turns": 1,
+    "visible": [
+      [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        true,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    ],
+    "width": 13
+  },
+  "hull": 83,
+  "last_notice": "Explorez, récupérez le lot au poste, puis revenez au train. Les tirs sont rares ; une case rouge annonce la prochaine frappe.",
+  "limits": {
+    "bag": 9,
+    "crew": 3,
+    "fuel": 24
+  },
+  "log": [
+    "Huit haltes avant le fort. Ramenez le butin au train ; une expédition peut être abandonnée.",
+    "Trajet payé, vivres consommés, coque −5. Un choix vous attend.",
+    "Aucun matériau, mais douze points de coque perdus. Prêt à explorer : continuer.",
+    "Explorez, récupérez le lot au poste, puis revenez au train. Les tirs sont rares ; une case rouge annonce la prochaine frappe."
+  ],
+  "pending_event": {},
+  "phase": "expedition",
+  "reason": "",
+  "region": "Vallée des Cendres",
+  "resources": {
+    "ammo": 6,
+    "food": 13,
+    "fuel": 15,
+    "medicine": 2,
+    "scrap": 18,
+    "water": 8
+  },
+  "rng": 66186834,
+  "route": {
+    "base_fuel": 4,
+    "danger": 2,
+    "description": "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ.",
+    "fuel": 3,
+    "id": "halte-1-0",
+    "kind": "depot",
+    "loot": {
+      "fuel": 8
+    },
+    "name": "Dépôt des Brasiers"
+  },
+  "routes": [
+    {
+      "base_fuel": 4,
+      "danger": 2,
+      "description": "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ.",
+      "fuel": 3,
+      "id": "halte-1-0",
+      "kind": "depot",
+      "loot": {
+        "fuel": 8
+      },
+      "name": "Dépôt des Brasiers"
+    },
+    {
+      "base_fuel": 4,
+      "danger": 2,
+      "description": "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ.",
+      "fuel": 3,
+      "id": "halte-1-1",
+      "kind": "farm",
+      "loot": {
+        "food": 9
+      },
+      "name": "Vergers calcinés"
+    },
+    {
+      "base_fuel": 4,
+      "danger": 2,
+      "description": "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ.",
+      "fuel": 3,
+      "id": "halte-1-2",
+      "kind": "well",
+      "loot": {
+        "water": 9
+      },
+      "name": "Source sous la cendre"
+    }
+  ],
+  "seed": 17,
+  "step": 0,
+  "train": {
+    "slots": [
+      "empty",
+      "empty",
+      "empty"
+    ]
+  },
+  "travel_modifier": 0,
+  "turn_total": 1,
+  "version": 1
+}

@@ -1,0 +1,75 @@
+{
+  "active_hero": "mira",
+  "blade": 0,
+  "crew": [
+    {
+      "hp": 100,
+      "id": "mira",
+      "max_hp": 100,
+      "name": "Mira",
+      "role": "pilote"
+    },
+    {
+      "hp": 110,
+      "id": "basile",
+      "max_hp": 110,
+      "name": "Basile",
+      "role": "mecano"
+    },
+    {
+      "hp": 85,
+      "id": "edda",
+      "max_hp": 85,
+      "name": "Edda",
+      "role": "eclaireuse"
+    }
+  ],
+  "event_resolved": false,
+  "expedition": {},
+  "hull": 55,
+  "last_notice": "Le gardien est tombé. Le dernier convoi franchit la Vallée des Cendres.",
+  "limits": {
+    "bag": 9,
+    "crew": 3,
+    "fuel": 24
+  },
+  "log": [
+    "Lot choisi. 8 / 9 unités portées ; revenez au train.",
+    "Halte 7 / 8 sécurisée. Butin déchargé ; préparez le prochain départ.",
+    "Trajet payé, vivres consommés, coque −9. Un choix vous attend.",
+    "Le gardien aura quatre PV de moins. Prêt à explorer : continuer.",
+    "Explorez, récupérez le lot au poste, puis revenez au train. Les tirs sont rares ; une case rouge annonce la prochaine frappe.",
+    "Adversaire neutralisé. Le passage est libre ; choisissez les fournitures dans les caches.",
+    "Adversaire neutralisé. Le passage est libre ; choisissez les fournitures dans les caches.",
+    "Adversaire neutralisé. Le passage est libre ; choisissez les fournitures dans les caches.",
+    "Lot choisi. 9 / 9 unités portées ; revenez au train.",
+    "Le gardien est tombé. Le dernier convoi franchit la Vallée des Cendres."
+  ],
+  "pending_event": {},
+  "phase": "won",
+  "reason": "Le gardien est tombé. Le dernier convoi franchit la Vallée des Cendres.",
+  "region": "Vallée des Cendres",
+  "resources": {
+    "ammo": 6,
+    "food": 21,
+    "fuel": 23,
+    "medicine": 2,
+    "scrap": 11,
+    "water": 8
+  },
+  "rng": 716069113,
+  "route": {},
+  "routes": [],
+  "seed": 1,
+  "step": 8,
+  "train": {
+    "slots": [
+      "empty",
+      "empty",
+      "empty"
+    ]
+  },
+  "travel_modifier": 4,
+  "turn_total": 249,
+  "version": 1
+}

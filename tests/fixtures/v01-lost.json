@@ -1,0 +1,75 @@
+{
+  "active_hero": "mira",
+  "blade": 0,
+  "crew": [
+    {
+      "hp": 44,
+      "id": "mira",
+      "max_hp": 100,
+      "name": "Mira",
+      "role": "pilote"
+    },
+    {
+      "hp": 54,
+      "id": "basile",
+      "max_hp": 110,
+      "name": "Basile",
+      "role": "mecano"
+    },
+    {
+      "hp": 29,
+      "id": "edda",
+      "max_hp": 85,
+      "name": "Edda",
+      "role": "eclaireuse"
+    }
+  ],
+  "event_resolved": false,
+  "expedition": {},
+  "hull": 0,
+  "last_notice": "La coque du dernier convoi a cédé.",
+  "limits": {
+    "bag": 9,
+    "crew": 3,
+    "fuel": 24
+  },
+  "log": [
+    "Une journée immobile consomme les vivres ; les cendres usent la coque.",
+    "Une journée immobile consomme les vivres ; les cendres usent la coque.",
+    "Une journée immobile consomme les vivres ; les cendres usent la coque.",
+    "Pénurie : équipage affaibli, coque −32.",
+    "Une journée immobile consomme les vivres ; les cendres usent la coque.",
+    "Pénurie : équipage affaibli, coque −40.",
+    "Une journée immobile consomme les vivres ; les cendres usent la coque.",
+    "Pénurie : équipage affaibli, coque −40.",
+    "Une journée immobile consomme les vivres ; les cendres usent la coque.",
+    "La coque du dernier convoi a cédé."
+  ],
+  "pending_event": {},
+  "phase": "lost",
+  "reason": "La coque du dernier convoi a cédé.",
+  "region": "Vallée des Cendres",
+  "resources": {
+    "ammo": 6,
+    "food": 0,
+    "fuel": 18,
+    "medicine": 2,
+    "scrap": 18,
+    "water": 0
+  },
+  "rng": 1410097729,
+  "route": {},
+  "routes": [],
+  "seed": 19,
+  "step": 0,
+  "train": {
+    "slots": [
+      "empty",
+      "empty",
+      "empty"
+    ]
+  },
+  "travel_modifier": 0,
+  "turn_total": 0,
+  "version": 1
+}
