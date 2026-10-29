@@ -4,13 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#101b1e">
-  <meta name="description" content="Un train pour refuge. Huit étapes pour traverser la Vallée des Cendres. Le Dernier Convoi, jeu de survie et de stratégie Android entièrement hors ligne.">
+  <meta name="description" content="Cinq régions, quarante étapes et un train pour refuge. Le Dernier Convoi, jeu de survie et de stratégie Android entièrement hors ligne. Version 0.2.0.">
   <meta property="og:title" content="Le Dernier Convoi — un refuge sur les rails">
-  <meta property="og:description" content="Choisis ta route, aménage ton train et reviens vivant de chaque expédition. Première région jouable, version 0.1.0.">
+  <meta property="og:description" content="Des cendres jusqu’à l’Aube : cinq régions, cinq gardiens et quarante étapes. Choisis ta route, aménage ton train et reviens de chaque expédition. Version 0.2.0.">
   <meta property="og:image" content="https://zachiran42.github.io/le-dernier-convoi/assets/key-art.png">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
   <title>Le Dernier Convoi — un refuge sur les rails</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=0.2.0">
 </head>
 <body>
   <a class="skip-link" href="#voyage">Aller au contenu</a>
@@ -21,8 +21,8 @@
     </a>
     <nav class="nav" aria-label="Navigation principale">
       <a href="#voyage">Le voyage</a>
-      <a href="#convoi">Le convoi</a>
-      <a class="nav-play" href="play/index.html">Jouer <span aria-hidden="true">↗</span></a>
+      <a href="#regions">Les régions</a>
+      <a class="nav-play" href="play/index.html?v=0.2.0">Jouer <span aria-hidden="true">↗</span></a>
     </nav>
   </header>
 
@@ -31,22 +31,22 @@
       <img class="hero-art" src="assets/key-art.png" width="1672" height="941" alt="Un long train aux fenêtres ambrées traverse un viaduc au milieu des pins et des montagnes noyées dans la brume." fetchpriority="high">
       <div class="hero-shade" aria-hidden="true"></div>
       <div class="hero-content container">
-        <p class="eyebrow"><span class="status-light" aria-hidden="true"></span> PREMIÈRE RÉGION JOUABLE <span class="version">v0.1.0</span></p>
+        <p class="eyebrow"><span class="status-light" aria-hidden="true"></span> UNE CAMPAGNE · CINQ RÉGIONS <span class="version">v0.2.0</span></p>
         <h1 id="game-title">Le Dernier<br><em>Convoi.</em></h1>
         <p class="hero-line">Un train pour refuge.<br>Une raison de continuer.</p>
-        <p class="hero-description">Les rails traversent un monde qui s’est tu. Choisis ta route, prends soin de ton convoi et ramène de quoi atteindre la prochaine étape.</p>
+        <p class="hero-description">Des cendres jusqu’à l’Aube, quarante étapes séparent ton refuge de sa destination. Choisis ta route, veille sur ton équipage et ramène de quoi repartir.</p>
         <div class="actions">
-          <a class="button primary" href="https://github.com/Zachiran42/le-dernier-convoi/releases/download/v0.1.0/le-dernier-convoi-0.1.0.apk" download><span>Télécharger l’APK</span><span aria-hidden="true">↓</span></a>
-          <a class="button ghost" href="play/index.html">Jouer dans le navigateur <span aria-hidden="true">↗</span></a>
+          <a class="button primary" href="https://github.com/Zachiran42/le-dernier-convoi/releases/download/v0.2.0/le-dernier-convoi-0.2.0.apk" download><span>Télécharger l’APK</span><span aria-hidden="true">↓</span></a>
+          <a class="button ghost" href="play/index.html?v=0.2.0">Jouer dans le navigateur <span aria-hidden="true">↗</span></a>
         </div>
         <p class="hero-meta">Android hors ligne <span>·</span> Solo <span>·</span> Code et créations du projet sous MIT</p>
       </div>
-      <div class="hero-bottom container"><span>VALLÉE DES CENDRES</span><a href="#voyage">Le voyage commence ici <span aria-hidden="true">↓</span></a></div>
+      <div class="hero-bottom container"><span>DES CENDRES JUSQU’À L’AUBE</span><a href="#regions">Découvrir les cinq régions <span aria-hidden="true">↓</span></a></div>
     </section>
 
-    <div class="ticket container" aria-label="Contenu de la version 0.1.0">
-      <div><small>DESTINATION</small><strong>La Vallée des Cendres</strong><span>Une région à traverser</span></div>
-      <div><small>ITINÉRAIRE</small><strong>08 <i>étapes</i></strong><span>Et une menace finale</span></div>
+    <div class="ticket container" aria-label="Contenu de la version 0.2.0">
+      <div><small>LA TRAVERSÉE</small><strong>05 <i>régions</i></strong><span>Cinq gardiens à franchir</span></div>
+      <div><small>ITINÉRAIRE</small><strong>40 <i>étapes</i></strong><span>Huit dans chaque région</span></div>
       <div><small>À BORD</small><strong>03 <i>emplacements</i></strong><span>Pour construire ton équilibre</span></div>
       <div><small>ÉQUIPEMENT</small><strong>06 <i>modules</i></strong><span>Chaque place compte</span></div>
     </div>
@@ -64,9 +64,38 @@
       </div>
     </section>
 
+    <section id="regions" class="section regions-section" aria-labelledby="regions-title">
+      <div class="container">
+        <div class="section-heading"><div><p class="eyebrow">02 / L’ATLAS DU VOYAGE</p><h2 id="regions-title">Cinq horizons.<br><em>Un seul refuge.</em></h2></div><p>Chaque région apporte ses lieux, ses événements et ses dangers. D’une escale à la suivante, poursuis avec le même train, le même équipage et les réserves qu’il te reste.</p></div>
+        <div class="region-grid">
+          <article class="region-card region-ash" aria-labelledby="region-ash-title">
+            <div class="region-art" aria-hidden="true"><svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice"><path class="land-back" d="M0 125 70 61 116 95 182 38 240 105 300 55 400 118V170H0Z"/><path class="land-front" d="M0 146 75 108 150 139 220 104 299 129 360 98 400 125V170H0Z"/><path class="land-detail" d="M0 150H400M45 151V119M355 151V125M133 151V132M245 151V126"/><path class="atmosphere" d="M5 89h130m38 25h170M80 56h65m110 20h130"/></svg><span class="region-number">01</span><span class="region-distance">ÉTAPES 01—08</span></div>
+            <div class="region-copy"><p class="region-kicker">BRUME &amp; CENDRES</p><h3 id="region-ash-title">Vallée des Cendres</h3><p>Les gares se devinent dans la brume. Sous la cendre, les premières braises jalonnent la route.</p><p class="region-danger"><span>DANGER</span> Braises au sol</p><p class="region-guardian"><span>GARDIEN</span> Gardien des Cendres</p></div>
+          </article>
+          <article class="region-card region-glass" aria-labelledby="region-glass-title">
+            <div class="region-art" aria-hidden="true"><svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice"><path class="land-back" d="M0 99 67 86 112 99 180 81 247 101 315 90 400 101V170H0Z"/><path class="land-front" d="M0 137 66 115 129 144 191 118 270 145 336 114 400 136V170H0Z"/><path class="land-detail" d="M25 118V62m0 20-11-12m11 21 13-18m277 42V54m0 25-13-14m13 28 11-16M58 148h78m58-7h62m59 15h57"/><path class="atmosphere" d="M54 100h160m-53 12h194M25 43h102"/></svg><span class="region-number">02</span><span class="region-distance">ÉTAPES 09—16</span></div>
+            <div class="region-copy"><p class="region-kicker">EAUX IMMOBILES</p><h3 id="region-glass-title">Marais de Verre</h3><p>Des reflets froids entourent les haltes abandonnées. Le chemin le plus court traverse parfois une flaque toxique.</p><p class="region-danger"><span>DANGER</span> Flaques toxiques à contourner</p><p class="region-guardian"><span>GARDIEN</span> Veilleur de Verre</p></div>
+          </article>
+          <article class="region-card region-signal" aria-labelledby="region-signal-title">
+            <div class="region-art" aria-hidden="true"><svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice"><circle class="region-sun" cx="300" cy="57" r="24"/><path class="land-back" d="M0 116Q94 59 194 112T400 101V170H0Z"/><path class="land-front" d="M0 144Q94 104 194 140T400 130V170H0Z"/><path class="land-detail" d="m95 128 15-86 16 86m-24-47h16m-21 28h26M110 42V25m-19 22 19 15 20-15m97 90 12-61 13 61m-13-61V61m-16 22 16 11 16-11"/><path class="atmosphere" d="M0 155h159m88-8h153"/></svg><span class="region-number">03</span><span class="region-distance">ÉTAPES 17—24</span></div>
+            <div class="region-copy"><p class="region-kicker">SOLEIL &amp; SILENCE</p><h3 id="region-signal-title">Désert des Antennes</h3><p>Les antennes brisées veillent sur des haltes asséchées. Il faut prévoir de l’eau avant chaque nouveau départ.</p><p class="region-danger"><span>DANGER</span> Chaleur et besoin d’eau accru</p><p class="region-guardian"><span>GARDIEN</span> Sentinelle des Antennes</p></div>
+          </article>
+          <article class="region-card region-frost" aria-labelledby="region-frost-title">
+            <div class="region-art" aria-hidden="true"><svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice"><path class="land-back" d="m0 146 74-99 46 59 79-92 93 108 47-63 61 83v28H0Z"/><path class="atmosphere" d="m52 77 22-30 22 29m78-32 25-30 32 37m-9-11-21 7-18-9"/><path class="land-front" d="M0 160 82 120 149 155 225 100 300 149 361 123 400 152V170H0Z"/><path class="land-detail" d="M0 155h400m-300-2 23-9m171 9 19-11"/></svg><span class="region-number">04</span><span class="region-distance">ÉTAPES 25—32</span></div>
+            <div class="region-copy"><p class="region-kicker">LE FROID S’INSTALLE</p><h3 id="region-frost-title">Crêtes du Givre</h3><p>Le convoi grimpe entre des reliefs gelés. Dans ces hauteurs, chaque trajet réclame davantage de carburant.</p><p class="region-danger"><span>DANGER</span> Gel et coût en carburant accru</p><p class="region-guardian"><span>GARDIEN</span> Brise-Givre</p></div>
+          </article>
+          <article class="region-card region-dawn" aria-labelledby="region-dawn-title">
+            <div class="region-art" aria-hidden="true"><svg viewBox="0 0 400 170" preserveAspectRatio="xMidYMid slice"><circle class="region-sun" cx="205" cy="76" r="39"/><path class="land-back" d="M0 143 72 122V72h28v21h22V47h33v54h30V80h34v20h32V55h30v35h24V70h27v54l68 18v28H0Z"/><path class="land-front" d="M0 159h81v-31h33v16h34v-28h104v28h35v-18h33v31h80v13H0Z"/><path class="land-detail" d="m190 116 15-17-6-15 15-19m-36 79h46m-101-1v-20m155 21v-17"/><path class="atmosphere" d="M14 103h42m285-7h46"/></svg><span class="region-number">05</span><span class="region-distance">ÉTAPES 33—40</span></div>
+            <div class="region-copy"><p class="region-kicker">AU BOUT DES RAILS</p><h3 id="region-dawn-title">Bastion de l’Aube</h3><p>L’horizon s’éclaire derrière les murs du bastion. Il reste à traverser ses zones électriques et à affronter la dernière vigie.</p><p class="region-danger"><span>DANGER</span> Arcs électriques</p><p class="region-guardian"><span>GARDIEN</span> Vigie de l’Aube</p></div>
+          </article>
+        </div>
+        <p class="region-footnote">Les dangers de terrain peuvent être contournés. Entre deux régions, une escale permet d’acheter des fournitures, de réparer le train ou de poursuivre sans dépense.</p>
+      </div>
+    </section>
+
     <section id="convoi" class="section module-section" aria-labelledby="convoi-title">
       <div class="container">
-        <div class="section-heading"><div><p class="eyebrow">02 / LE CONVOI</p><h2 id="convoi-title">Trois places.<br><em>Six façons de tenir.</em></h2></div><p>Ton train ne peut pas tout emporter. Choisis les modules qui répondent aux besoins de ta traversée ; leurs coûts et leurs effets sont indiqués dans le jeu.</p></div>
+        <div class="section-heading"><div><p class="eyebrow">03 / LE CONVOI</p><h2 id="convoi-title">Trois places.<br><em>Six façons de tenir.</em></h2></div><p>Ton train ne peut pas tout emporter. Choisis les modules qui répondent aux besoins de ta traversée ; leurs coûts et leurs effets sont indiqués dans le jeu.</p></div>
         <div class="train-diagram" aria-label="Trois emplacements de modules dans le convoi"><span class="locomotive" aria-hidden="true"><svg viewBox="0 0 96 52"><path d="M12 38h65l10-9V17H55V9H36v8H20v21M55 17v21M73 17v21M36 17h12v12H36zM8 43h80"/><circle cx="25" cy="40" r="5"/><circle cx="50" cy="40" r="5"/><circle cx="73" cy="40" r="5"/></svg></span><span class="coupling" aria-hidden="true"></span><span class="wagon-slot"><small>EMPLACEMENT</small>01</span><span class="coupling" aria-hidden="true"></span><span class="wagon-slot"><small>EMPLACEMENT</small>02</span><span class="coupling" aria-hidden="true"></span><span class="wagon-slot"><small>EMPLACEMENT</small>03</span></div>
         <div class="module-grid">
           <article class="module"><span class="module-index">01 / AUTONOMIE</span><h3>Serre</h3><p>Des rations pour préparer les prochaines étapes et prolonger la traversée.</p><span class="module-symbol" aria-hidden="true">✳</span></article>
@@ -81,14 +110,14 @@
 
     <section class="section container expedition" aria-labelledby="expedition-title">
       <div class="expedition-visual" aria-hidden="true"><div class="grid-lines"></div><span class="trail trail-one"></span><span class="trail trail-two"></span><span class="map-point start">↥</span><span class="map-point loot">◆</span><span class="map-point threat">!</span><span class="map-point player">●</span><span class="map-caption">REPÉRER · RÉCUPÉRER · REVENIR</span></div>
-      <div class="section-intro"><p class="eyebrow">03 / LES EXPÉDITIONS</p><h2 id="expedition-title">Le butin se mérite.<br><em>Le retour aussi.</em></h2><p>Chaque déplacement compte. Sur la grille, évalue les distances, ménage tes munitions et décide quand tu en as assez pris.</p><p>Rejoindre le point d’entrée valide le butin de l’expédition. Un repli permet d’abandonner la sortie, mais laisse le butin en cours derrière toi.</p><div class="resource-list" aria-label="Ressources à gérer"><span>Carburant</span><span>Rations</span><span>Eau</span><span>Ferraille</span><span>Médicaments</span><span>Munitions</span></div></div>
+      <div class="section-intro"><p class="eyebrow">04 / LES EXPÉDITIONS</p><h2 id="expedition-title">Le butin se mérite.<br><em>Le retour aussi.</em></h2><p>Chaque déplacement compte. Sur la grille, évalue les distances, contourne les terrains dangereux et ménage tes munitions.</p><p>Rejoindre le point d’entrée valide le butin de l’expédition. Un repli permet d’abandonner la sortie, mais laisse le butin en cours derrière toi.</p><div class="resource-list" aria-label="Ressources à gérer"><span>Carburant</span><span>Rations</span><span>Eau</span><span>Ferraille</span><span>Médicaments</span><span>Munitions</span></div></div>
     </section>
 
     <section id="commandes" class="section controls-section" aria-labelledby="controls-title">
-      <div class="container controls-layout"><div><p class="eyebrow">04 / PRENDRE LES COMMANDES</p><h2 id="controls-title">Au toucher.<br><em>À ton rythme.</em></h2><p>Une interface pensée pour le portrait et les décisions au tour par tour. Aucun compte à créer pour prendre le départ.</p></div><div class="controls-card"><div class="control-row"><span>Se déplacer</span><strong>Touche une direction ou une case</strong><small>Flèches / ZQSD sur ordinateur</small></div><div class="control-row"><span>Interagir</span><strong>Commande Interagir</strong><small>Touche E</small></div><div class="control-row"><span>Attaquer</span><strong>Frapper à proximité, tirer à distance</strong><small>Espace · Le tir consomme une munition</small></div><div class="control-row"><span>Se soigner / Attendre</span><strong>Commandes Soin et Attendre</strong><small>F / Entrée</small></div></div></div>
+      <div class="container controls-layout"><div><p class="eyebrow">05 / PRENDRE LES COMMANDES</p><h2 id="controls-title">Au toucher.<br><em>À ton rythme.</em></h2><p>Une interface pensée pour le portrait et les décisions au tour par tour. Aucun compte à créer pour prendre le départ.</p></div><div class="controls-card"><div class="control-row"><span>Se déplacer</span><strong>Touche une direction ou une case</strong><small>Flèches / ZQSD sur ordinateur</small></div><div class="control-row"><span>Interagir</span><strong>Commande Interagir</strong><small>Touche E</small></div><div class="control-row"><span>Attaquer</span><strong>Frapper à proximité, tirer à distance</strong><small>Espace · Le tir consomme une munition</small></div><div class="control-row"><span>Se soigner / Attendre</span><strong>Commandes Soin et Attendre</strong><small>F / Entrée</small></div></div></div>
     </section>
 
-    <section id="jouer" class="section container departure" aria-labelledby="departure-title"><div><p class="eyebrow">PREMIER JALON / VERSION 0.1.0</p><h2 id="departure-title">La vallée t’attend.</h2><p>Une région, huit étapes et une menace finale : ce premier voyage pose les fondations du jeu. Le contenu et l’équilibre continueront d’évoluer.</p><div class="actions"><a class="button primary" href="https://github.com/Zachiran42/le-dernier-convoi/releases/download/v0.1.0/le-dernier-convoi-0.1.0.apk" download>Télécharger pour Android <span aria-hidden="true">↓</span></a><a class="button outline" href="play/index.html">Jouer sur le web <span aria-hidden="true">↗</span></a></div><p class="download-note">APK de développement signé · Sauvegarde locale · Aucun serveur requis dans l’application</p></div><aside class="field-note"><span class="note-label">CARNET DE DÉVELOPPEMENT</span><h3>Un voyage qui se construit.</h3><p>La version 0.1.0 couvre la Vallée des Cendres. Les tests, les retours de jeu et l’équilibrage guideront la suite du convoi.</p><a href="https://github.com/Zachiran42/le-dernier-convoi">Explorer le projet sur GitHub <span aria-hidden="true">↗</span></a></aside></section>
+    <section id="jouer" class="section container departure" aria-labelledby="departure-title"><div><p class="eyebrow">LA GRANDE TRAVERSÉE / VERSION 0.2.0</p><h2 id="departure-title">Le prochain horizon<br><em>t’attend.</em></h2><p>Cinq régions, quarante étapes, cinq gardiens. Garde ton équipage en vie et adapte ton convoi jusqu’au Bastion de l’Aube.</p><div class="actions"><a class="button primary" href="https://github.com/Zachiran42/le-dernier-convoi/releases/download/v0.2.0/le-dernier-convoi-0.2.0.apk" download>Télécharger pour Android <span aria-hidden="true">↓</span></a><a class="button outline" href="play/index.html?v=0.2.0">Jouer sur le web <span aria-hidden="true">↗</span></a></div><p class="download-note">APK de développement signé · Sauvegarde locale · Progression 0.1 conservée lors de la reprise</p></div><aside class="field-note"><span class="note-label">CARNET DE DÉVELOPPEMENT</span><h3>Le voyage continue.</h3><p>La campagne s’étend au-delà de la vallée. Ta progression, ton train et tes réserves t’accompagnent d’une région à la suivante.</p><p>Si tu avais terminé la version 0.1.0, une offre gratuite de ravitaillement t’attend à la reprise. Elle s’utilise une seule fois pour repartir vers les marais.</p><a href="https://github.com/Zachiran42/le-dernier-convoi/blob/main/CHANGELOG.md">Lire le journal des versions <span aria-hidden="true">↗</span></a><a class="previous-release" href="https://github.com/Zachiran42/le-dernier-convoi/releases/tag/v0.1.0">Retrouver la version 0.1.0 <span aria-hidden="true">↗</span></a></aside></section>
   </main>
 
   <footer class="footer container"><div class="footer-brand">LE DERNIER CONVOI <span>Un refuge sur les rails.</span></div><div><a href="privacy.html">Confidentialité</a>
