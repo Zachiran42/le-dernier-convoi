@@ -1,0 +1,140 @@
+name: Android APK and Web demo
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: godot-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    env:
+      GODOT_VERSION: '4.7.2'
+      PYTHONDONTWRITEBYTECODE: '1'
+      ANDROID_USER_HOME: ${{ github.workspace }}/build/user/android
+      GRADLE_USER_HOME: ${{ github.workspace }}/build/user/gradle
+      XDG_DATA_HOME: ${{ github.workspace }}/build/user/data
+      XDG_CONFIG_HOME: ${{ github.workspace }}/build/user/config
+      XDG_CACHE_HOME: ${{ github.workspace }}/build/user/cache
+    steps:
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7
+        with:
+          python-version: '3.13'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+
+      - name: Set up Java 17
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+        with:
+          cmdline-tools-version: '15859902'
+          packages: 'platform-tools build-tools;35.0.1 platforms;android-35 platforms;android-36'
+
+      - name: Test build guards
+        run: python tools/test_tooling.py
+
+      - name: Download and verify official Godot archives
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p build/logs build/android build/web-raw build/web-pages build/signing build/tmp
+          touch build/.gdignore
+          python tools/fetch-godot.py --destination build/toolchain/godot --platform linux
+          python -c 'import json,os; from pathlib import Path; data=json.loads(Path("build/toolchain/godot/install.json").read_text()); Path(os.environ["GITHUB_ENV"]).open("a").write("GODOT="+data["executable"]+"\n")'
+
+      - name: Configure portable editor and ephemeral CI signing
+        run: |
+          keytool -genkeypair -noprompt -keystore build/signing/ci.keystore -alias androiddebugkey -storepass android -keypass android -dname 'CN=Android Debug,O=Android,C=US' -keyalg RSA -keysize 2048 -validity 10000
+          python tools/configure-godot.py --executable "$GODOT" --java-sdk "$JAVA_HOME" --android-sdk "$ANDROID_HOME" --keystore build/signing/ci.keystore
+          "$GODOT" --headless --version | tee build/logs/version.log
+          grep -Fx '4.7.2.stable.official.ed1daf0bf' build/logs/version.log
+          echo "GODOT_ANDROID_KEYSTORE_RELEASE_PATH=$GITHUB_WORKSPACE/build/signing/ci.keystore" >> "$GITHUB_ENV"
+          echo 'GODOT_ANDROID_KEYSTORE_RELEASE_USER=androiddebugkey' >> "$GITHUB_ENV"
+          echo 'GODOT_ANDROID_KEYSTORE_RELEASE_PASSWORD=android' >> "$GITHUB_ENV"
+          echo "TMPDIR=$GITHUB_WORKSPACE/build/tmp" >> "$GITHUB_ENV"
+
+      - name: Import and check GDScript
+        run: python tools/run-godot.py --executable "$GODOT" --log build/logs/import.log -- --path . --editor --quit
+
+      - name: Test state, saves and simulation
+        run: python tools/run-godot.py --executable "$GODOT" --log build/logs/tests.log -- --path . --script res://tests/test_state.gd
+
+      - name: Test touch UI and isolated saves
+        env:
+          XDG_DATA_HOME: ${{ github.workspace }}/build/convoi-ui-test/data
+        run: python tools/run-godot.py --executable "$GODOT" --log build/logs/ui-tests.log -- --path . --script res://tests/test_ui.gd
+
+      - name: Export Android release APK
+        run: python tools/run-godot.py --executable "$GODOT" --log build/logs/android-export.log --expect build/android/le-dernier-convoi.apk -- --path . --export-release Android "$GITHUB_WORKSPACE/build/android/le-dernier-convoi.apk"
+
+      - name: Verify APK signature, offline permissions and ARM64
+        run: |
+          "$ANDROID_HOME/build-tools/35.0.1/apksigner" verify --verbose build/android/le-dernier-convoi.apk | tee build/logs/apk-signature.log
+          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump permissions build/android/le-dernier-convoi.apk > build/logs/apk-permissions.log
+          if grep -q 'android.permission.INTERNET' build/logs/apk-permissions.log; then
+            echo 'Offline APK unexpectedly requests INTERNET permission' >&2
+            exit 1
+          fi
+          "$ANDROID_HOME/build-tools/35.0.1/aapt" dump badging build/android/le-dernier-convoi.apk > build/logs/apk-badging.log
+          grep -Fx "native-code: 'arm64-v8a'" build/logs/apk-badging.log
+
+      - name: Export single-thread Web demo
+        run: python tools/run-godot.py --executable "$GODOT" --log build/logs/web-export.log --expect build/web-raw/index.html -- --path . --export-release Web "$GITHUB_WORKSPACE/build/web-raw/index.html"
+
+      - name: Package GitHub Pages files and license notices
+        run: |
+          node tools/pack-web.cjs build/web-raw build/web-pages
+          for notice in LICENSE GODOT_LICENSE.txt GODOT_THIRD_PARTY_LICENSES.txt; do
+            test -f "$notice"
+            cp "$notice" build/android/
+            cp "$notice" build/web-raw/
+            cp "$notice" build/web-pages/
+          done
+          sha256sum build/android/*.apk build/web-pages/index.wasm.gz > build/SHA256SUMS.txt
+
+      - name: Upload APK and both Web exports
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: le-dernier-convoi-android-and-web-${{ github.sha }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            build/android/
+            build/web-raw/
+            build/web-pages/
+            build/SHA256SUMS.txt
+
+      - name: Upload build logs and verification report
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: le-dernier-convoi-build-evidence-${{ github.sha }}
+          if-no-files-found: warn
+          retention-days: 14
+          path: |
+            build/logs/
+            build/toolchain/godot/install.json
