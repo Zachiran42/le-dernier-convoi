@@ -13,3 +13,8 @@ Les empreintes et tailles figurent dans convoi-web-pack.json.
 
 Les mentions de copyright et la licence MIT de Godot restent présentes.
 Les textes complets sont inclus à la racine du projet et de la page du jeu.
+
+Le pack de jeu porte aussi un nom contenant son empreinte SHA-256.
+La configuration publique Godot mainPack utilise ce nom pour que les mises
+à jour ne réutilisent pas un ancien pack en cache. index.pck reste une copie
+identique destinée aux vérifications Android/Web.
