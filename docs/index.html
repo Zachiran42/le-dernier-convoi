@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#101b1e">
+  <meta name="description" content="Un train pour refuge. Huit étapes pour traverser la Vallée des Cendres. Le Dernier Convoi, jeu de survie et de stratégie Android entièrement hors ligne.">
+  <meta property="og:title" content="Le Dernier Convoi — un refuge sur les rails">
+  <meta property="og:description" content="Choisis ta route, aménage ton train et reviens vivant de chaque expédition. Première région jouable, version 0.1.0.">
+  <meta property="og:image" content="https://zachiran42.github.io/le-dernier-convoi/assets/key-art.png">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'none'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'self'; form-action 'none'">
+  <title>Le Dernier Convoi — un refuge sur les rails</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <a class="skip-link" href="#voyage">Aller au contenu</a>
+  <header class="header">
+    <a class="wordmark" href="./" aria-label="Le Dernier Convoi, accueil">
+      <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 9h21v21H8zM8 16h21M14 9v7M23 9v7M6 34h26M14 30l-4 5M24 30l4 5"/><path d="M13 23h3m5 0h3"/></svg>
+      <span>LE DERNIER<br><strong>CONVOI</strong></span>
+    </a>
+    <nav class="nav" aria-label="Navigation principale">
+      <a href="#voyage">Le voyage</a>
+      <a href="#convoi">Le convoi</a>
+      <a class="nav-play" href="play/index.html">Jouer <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="game-title">
+      <img class="hero-art" src="assets/key-art.png" width="1672" height="941" alt="Un long train aux fenêtres ambrées traverse un viaduc au milieu des pins et des montagnes noyées dans la brume." fetchpriority="high">
+      <div class="hero-shade" aria-hidden="true"></div>
+      <div class="hero-content container">
+        <p class="eyebrow"><span class="status-light" aria-hidden="true"></span> PREMIÈRE RÉGION JOUABLE <span class="version">v0.1.0</span></p>
+        <h1 id="game-title">Le Dernier<br><em>Convoi.</em></h1>
+        <p class="hero-line">Un train pour refuge.<br>Une raison de continuer.</p>
+        <p class="hero-description">Les rails traversent un monde qui s’est tu. Choisis ta route, prends soin de ton convoi et ramène de quoi atteindre la prochaine étape.</p>
+        <div class="actions">
+          <a class="button primary" href="https://github.com/Zachiran42/le-dernier-convoi/releases/download/v0.1.0/le-dernier-convoi-0.1.0.apk" download><span>Télécharger l’APK</span><span aria-hidden="true">↓</span></a>
+          <a class="button ghost" href="play/index.html">Jouer dans le navigateur <span aria-hidden="true">↗</span></a>
+        </div>
+        <p class="hero-meta">Android hors ligne <span>·</span> Solo <span>·</span> Code et créations du projet sous MIT</p>
+      </div>
+      <div class="hero-bottom container"><span>VALLÉE DES CENDRES</span><a href="#voyage">Le voyage commence ici <span aria-hidden="true">↓</span></a></div>
+    </section>
+
+    <div class="ticket container" aria-label="Contenu de la version 0.1.0">
+      <div><small>DESTINATION</small><strong>La Vallée des Cendres</strong><span>Une région à traverser</span></div>
+      <div><small>ITINÉRAIRE</small><strong>08 <i>étapes</i></strong><span>Et une menace finale</span></div>
+      <div><small>À BORD</small><strong>03 <i>emplacements</i></strong><span>Pour construire ton équilibre</span></div>
+      <div><small>ÉQUIPEMENT</small><strong>06 <i>modules</i></strong><span>Chaque place compte</span></div>
+    </div>
+
+    <section id="voyage" class="section container voyage" aria-labelledby="voyage-title">
+      <div class="section-intro">
+        <p class="eyebrow">01 / LE VOYAGE</p>
+        <h2 id="voyage-title">Ton refuge avance.<br><em>Tes choix restent.</em></h2>
+        <p>Un détour peut offrir les réserves dont tu manques. Il peut aussi coûter le carburant qui te permettrait de repartir. La bonne route se choisit avec ce qu’il te reste.</p>
+      </div>
+      <div class="journey-steps">
+        <article><span class="step-number">01</span><div><h3>Lire la route</h3><p>Compare le carburant nécessaire, le danger annoncé et les ressources possibles avant de choisir un embranchement.</p></div></article>
+        <article><span class="step-number">02</span><div><h3>Quitter les rails</h3><p>Pars en expédition sur une grille tactique. Avance, interagis et combats pour récupérer de quoi faire durer le voyage.</p></div></article>
+        <article><span class="step-number">03</span><div><h3>Préparer le départ</h3><p>De retour au convoi, répartis tes ressources et choisis tes modules. La prochaine étape ne demandera pas forcément les mêmes sacrifices.</p></div></article>
+      </div>
+    </section>
+
+    <section id="convoi" class="section module-section" aria-labelledby="convoi-title">
+      <div class="container">
+        <div class="section-heading"><div><p class="eyebrow">02 / LE CONVOI</p><h2 id="convoi-title">Trois places.<br><em>Six façons de tenir.</em></h2></div><p>Ton train ne peut pas tout emporter. Choisis les modules qui répondent aux besoins de ta traversée ; leurs coûts et leurs effets sont indiqués dans le jeu.</p></div>
+        <div class="train-diagram" aria-label="Trois emplacements de modules dans le convoi"><span class="locomotive" aria-hidden="true"><svg viewBox="0 0 96 52"><path d="M12 38h65l10-9V17H55V9H36v8H20v21M55 17v21M73 17v21M36 17h12v12H36zM8 43h80"/><circle cx="25" cy="40" r="5"/><circle cx="50" cy="40" r="5"/><circle cx="73" cy="40" r="5"/></svg></span><span class="coupling" aria-hidden="true"></span><span class="wagon-slot"><small>EMPLACEMENT</small>01</span><span class="coupling" aria-hidden="true"></span><span class="wagon-slot"><small>EMPLACEMENT</small>02</span><span class="coupling" aria-hidden="true"></span><span class="wagon-slot"><small>EMPLACEMENT</small>03</span></div>
+        <div class="module-grid">
+          <article class="module"><span class="module-index">01 / AUTONOMIE</span><h3>Serre</h3><p>Des rations pour préparer les prochaines étapes et prolonger la traversée.</p><span class="module-symbol" aria-hidden="true">✳</span></article>
+          <article class="module"><span class="module-index">02 / RÉSERVES</span><h3>Citerne</h3><p>Une réserve de carburant plus grande pour préparer les longs trajets et limiter les pertes de ravitaillement.</p><span class="module-symbol droplet" aria-hidden="true">◇</span></article>
+          <article class="module"><span class="module-index">03 / ENTRETIEN</span><h3>Atelier</h3><p>Transforme la ferraille en munitions, carburant, remèdes ou en améliorations de lame.</p><span class="module-symbol" aria-hidden="true">⚒</span></article>
+          <article class="module"><span class="module-index">04 / PROTECTION</span><h3>Blindage</h3><p>Préparer le train aux trajets dangereux et aux dégâts qui menacent sa traversée.</p><span class="module-symbol" aria-hidden="true">⬡</span></article>
+          <article class="module"><span class="module-index">05 / SOINS</span><h3>Infirmerie</h3><p>Réserver une place aux soins lorsque les expéditions laissent des blessures.</p><span class="module-symbol" aria-hidden="true">+</span></article>
+          <article class="module"><span class="module-index">06 / VIE À BORD</span><h3>Dortoir</h3><p>Accueille un quatrième survivant, qui aura lui aussi besoin de vivres.</p><span class="module-symbol" aria-hidden="true">▤</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section container expedition" aria-labelledby="expedition-title">
+      <div class="expedition-visual" aria-hidden="true"><div class="grid-lines"></div><span class="trail trail-one"></span><span class="trail trail-two"></span><span class="map-point start">↥</span><span class="map-point loot">◆</span><span class="map-point threat">!</span><span class="map-point player">●</span><span class="map-caption">REPÉRER · RÉCUPÉRER · REVENIR</span></div>
+      <div class="section-intro"><p class="eyebrow">03 / LES EXPÉDITIONS</p><h2 id="expedition-title">Le butin se mérite.<br><em>Le retour aussi.</em></h2><p>Chaque déplacement compte. Sur la grille, évalue les distances, ménage tes munitions et décide quand tu en as assez pris.</p><p>Rejoindre le point d’entrée valide le butin de l’expédition. Un repli permet d’abandonner la sortie, mais laisse le butin en cours derrière toi.</p><div class="resource-list" aria-label="Ressources à gérer"><span>Carburant</span><span>Rations</span><span>Eau</span><span>Ferraille</span><span>Médicaments</span><span>Munitions</span></div></div>
+    </section>
+
+    <section id="commandes" class="section controls-section" aria-labelledby="controls-title">
+      <div class="container controls-layout"><div><p class="eyebrow">04 / PRENDRE LES COMMANDES</p><h2 id="controls-title">Au toucher.<br><em>À ton rythme.</em></h2><p>Une interface pensée pour le portrait et les décisions au tour par tour. Aucun compte à créer pour prendre le départ.</p></div><div class="controls-card"><div class="control-row"><span>Se déplacer</span><strong>Touche une direction ou une case</strong><small>Flèches / ZQSD sur ordinateur</small></div><div class="control-row"><span>Interagir</span><strong>Commande Interagir</strong><small>Touche E</small></div><div class="control-row"><span>Attaquer</span><strong>Frapper à proximité, tirer à distance</strong><small>Espace · Le tir consomme une munition</small></div><div class="control-row"><span>Se soigner / Attendre</span><strong>Commandes Soin et Attendre</strong><small>F / Entrée</small></div></div></div>
+    </section>
+
+    <section id="jouer" class="section container departure" aria-labelledby="departure-title"><div><p class="eyebrow">PREMIER JALON / VERSION 0.1.0</p><h2 id="departure-title">La vallée t’attend.</h2><p>Une région, huit étapes et une menace finale : ce premier voyage pose les fondations du jeu. Le contenu et l’équilibre continueront d’évoluer.</p><div class="actions"><a class="button primary" href="https://github.com/Zachiran42/le-dernier-convoi/releases/download/v0.1.0/le-dernier-convoi-0.1.0.apk" download>Télécharger pour Android <span aria-hidden="true">↓</span></a><a class="button outline" href="play/index.html">Jouer sur le web <span aria-hidden="true">↗</span></a></div><p class="download-note">APK de développement signé · Sauvegarde locale · Aucun serveur requis dans l’application</p></div><aside class="field-note"><span class="note-label">CARNET DE DÉVELOPPEMENT</span><h3>Un voyage qui se construit.</h3><p>La version 0.1.0 couvre la Vallée des Cendres. Les tests, les retours de jeu et l’équilibrage guideront la suite du convoi.</p><a href="https://github.com/Zachiran42/le-dernier-convoi">Explorer le projet sur GitHub <span aria-hidden="true">↗</span></a></aside></section>
+  </main>
+
+  <footer class="footer container"><div class="footer-brand">LE DERNIER CONVOI <span>Un refuge sur les rails.</span></div><div><a href="privacy.html">Confidentialité</a>
+      <a href="GODOT_THIRD_PARTY_LICENSES.txt">Licences du moteur</a><a href="https://github.com/Zachiran42/le-dernier-convoi/blob/main/LICENSE">Licence MIT</a><a href="https://github.com/Zachiran42/le-dernier-convoi/issues">Signaler un problème <span aria-hidden="true">↗</span></a></div><p>Illustration de couverture originale créée avec ImageGen. La démo web nécessite un premier chargement ; l’APK contient le jeu pour jouer sans connexion.</p></footer>
+</body>
+</html>
