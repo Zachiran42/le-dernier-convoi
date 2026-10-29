@@ -42,6 +42,12 @@ func _at_enemy(e: Dictionary, point: Vector2i) -> bool:
             return true
     return false
 
+func _hazard(e: Dictionary,point: Vector2i) -> bool:
+    for item in e.get("hazards",[]):
+        if Vector2i(int(item.x),int(item.y)) == point:
+            return true
+    return false
+
 func _safe_delta(state, target: Vector2i) -> Vector2i:
     var e = state.data.expedition
     var start = Vector2i(int(e.player.x),int(e.player.y))
@@ -62,7 +68,7 @@ func _safe_delta(state, target: Vector2i) -> Vector2i:
             break
         for delta in Model.DIRECTIONS.values():
             var next: Vector2i = at+delta
-            if next.x < 1 or next.y < 1 or next.x >= Model.WIDTH-1 or next.y >= Model.HEIGHT-1 or e.grid[next.y][next.x] != 0 or parents.has(next) or _at_enemy(e,next):
+            if next.x < 1 or next.y < 1 or next.x >= Model.WIDTH-1 or next.y >= Model.HEIGHT-1 or e.grid[next.y][next.x] != 0 or parents.has(next) or _at_enemy(e,next) or _hazard(e,next):
                 continue
             parents[next] = at
             open.append(next)
@@ -75,19 +81,34 @@ func _safe_delta(state, target: Vector2i) -> Vector2i:
 func _bot_event(state) -> void:
     var event = state.data.pending_event
     if event.context == "loot":
+        if state.data.route.kind == "depot" and int(state.data.resources.fuel) >= 15 and int(state.data.resources.scrap) < 16:
+            if _size(state.data.expedition.carried)+_size(event.choices[1].effects.loot) <= int(state.data.expedition.capacity):
+                state.act("event_choice",1)
+                return
         for index in range(event.choices.size()):
             var incoming = event.choices[index].effects.get("loot",{})
             if _size(state.data.expedition.carried)+_size(incoming) <= int(state.data.expedition.capacity):
                 state.act("event_choice",index)
                 return
         return
+    if event.context == "region":
+        if event.choices[0].id == "resume":
+            state.act("event_choice",0)
+            return
+        var pick = 2
+        if int(state.data.hull) < 72 and int(state.data.resources.scrap) >= 4:
+            pick = 1
+        elif int(state.data.resources.scrap) >= 6 and (int(state.data.resources.fuel) < 10 or int(state.data.resources.food) < 10 or int(state.data.resources.water) < 7):
+            pick = 0
+        state.act("event_choice",pick)
+        return
     var choice = 2
     match event.id:
-        "bridge": choice = 1 if int(state.data.resources.scrap) >= 3 else 2
+        "bridge": choice = 2
         "survivors": choice = 0 if int(state.data.resources.scrap) >= 4 else 2
-        "storm": choice = 1 if int(state.data.resources.scrap) >= 2 else 2
+        "storm": choice = 2
         "dealer": choice = 0 if int(state.data.resources.fuel) < 12 and int(state.data.resources.scrap) >= 5 else 2
-        "water": choice = 1 if int(state.data.resources.water) < 9 and int(state.data.resources.scrap) >= 3 else 2
+        "water": choice = 1 if int(state.data.resources.water) < int(state.departure_needs().water)+2 and int(state.data.resources.scrap) >= 3 else 2
         "checkpoint": choice = 1 if int(state.data.resources.food) >= 9 else (0 if int(state.data.resources.ammo) >= 3 else 2)
         "beacon": choice = 0 if int(state.data.resources.water) >= 6 else (1 if int(state.data.resources.fuel) >= 4 else 2)
         "last_gate": choice = 0 if int(state.data.resources.scrap) >= 4 else 2
@@ -102,18 +123,27 @@ func _bot_expedition(state) -> void:
     for enemy in e.enemies:
         if enemy.intent == "strike" and Vector2i(int(enemy.intent_x),int(enemy.intent_y)) == player:
             threatened = true
+    if threatened and state.data.route.kind == "fort" and int(_hero(state).hp) >= 42 and int(state.data.resources.ammo) > 0:
+        if state.act("attack"):
+            return
+    if int(_hero(state).hp) < 32 and int(state.data.resources.medicine) > 0:
+        if state.act("heal"):
+            return
     if threatened:
         var candidates = []
         for delta in Model.DIRECTIONS.values():
             var next: Vector2i = player+delta
-            if next.x < 1 or next.y < 1 or next.x >= Model.WIDTH-1 or next.y >= Model.HEIGHT-1 or e.grid[next.y][next.x] != 0 or _at_enemy(e,next):
+            if next.x < 1 or next.y < 1 or next.x >= Model.WIDTH-1 or next.y >= Model.HEIGHT-1 or e.grid[next.y][next.x] != 0 or _at_enemy(e,next) or _hazard(e,next):
                 continue
             var dangerous = false
             for enemy in e.enemies:
                 if enemy.intent == "strike" and Vector2i(int(enemy.intent_x),int(enemy.intent_y)) == next:
                     dangerous = true
             if not dangerous:
-                candidates.append({"delta":delta,"distance":absi(next.x-destination.x)+absi(next.y-destination.y)})
+                var nearest_enemy = 999
+                for hostile in e.enemies:
+                    nearest_enemy = mini(nearest_enemy,absi(int(hostile.x)-next.x)+absi(int(hostile.y)-next.y))
+                candidates.append({"delta":delta,"distance":nearest_enemy*20+absi(next.x-destination.x)+absi(next.y-destination.y)})
         candidates.sort_custom(func(a,b): return a.distance < b.distance)
         if not candidates.is_empty():
             state.act("move",candidates[0].delta)
@@ -168,10 +198,8 @@ func _run_bot(seed: int, module: String = ""):
     if not module.is_empty():
         _check(state.act("build",module), "starter wagon should be affordable")
     var turns = 0
-    while not state.data.phase in ["won","lost"] and turns < 2500:
+    while not state.data.phase in ["won","lost"] and turns < 15000:
         turns += 1
-        if state.data.phase == "expedition" and int(state.data.expedition.turns) == 60:
-            print("TRACE seed=",seed," step=",state.data.step," player=",state.data.expedition.player," enemies=",state.data.expedition.enemies)
         if not state.data.pending_event.is_empty():
             _bot_event(state)
         elif state.data.phase == "travel_event":
@@ -180,21 +208,53 @@ func _run_bot(seed: int, module: String = ""):
             if int(_hero(state).hp) < 50 and int(state.data.resources.medicine) > 0:
                 state.act("heal")
             if int(state.data.hull) < 50 and int(state.data.resources.scrap) >= 4:
+                state.act("assign","basile")
                 state.act("repair")
+                state.act("assign","mira")
+            var minimum_fuel = 999
+            for option in state.data.routes:
+                minimum_fuel = mini(minimum_fuel,int(option.fuel))
+            if int(state.data.resources.fuel) < minimum_fuel:
+                if not "atelier" in state.data.train.slots:
+                    if int(state.data.resources.scrap) >= 15 and int(state.data.resources.water) >= 1:
+                        state.act("build","atelier")
+                    else:
+                        for slot in range(3):
+                            if state.data.train.slots[slot] != "empty":
+                                state.act("dismantle",slot)
+                if "atelier" in state.data.train.slots:
+                    state.act("assign","basile")
+                    for batch in range(3):
+                        if int(state.data.resources.fuel) >= 7:
+                            break
+                        if not state.act("craft","fuel"):
+                            break
+                    state.act("assign","mira")
             var route = 0
-            if int(state.data.resources.food) < 8:
-                route = 1
-            elif int(state.data.resources.water) < 5:
-                route = 2
-            elif int(state.data.resources.fuel) < 7:
+            var needs = state.departure_needs()
+            var food_turns = float(state.data.resources.food)/maxi(1,int(needs.food)) if int(needs.food) else 999.0
+            var water_turns = float(state.data.resources.water)/maxi(1,int(needs.water))
+            var fuel_turns = float(state.data.resources.fuel)/maxi(1,int(state.data.routes[0].fuel))
+            if fuel_turns < 2.1:
                 route = 0
+            elif food_turns < 2.1 and food_turns <= water_turns:
+                route = 1
+            elif water_turns < 2.5:
+                route = 2
             else:
-                var cost = 999
+                var score_best = 999
                 for index in range(3):
                     var score = int(state.data.routes[index].fuel)*2+int(state.data.routes[index].danger)
-                    if score < cost:
+                    if score < score_best:
                         route = index
-                        cost = score
+                        score_best = score
+            var next_reserve = state._fuel_cost(4,state.data)
+            if route != 0 and int(state.data.resources.fuel) < int(state.data.routes[route].fuel)+next_reserve:
+                route = 0
+            if int(state.data.region_index) > 0 and not module.is_empty() and module in state.data.train.slots:
+                var water_need = int(needs.water)
+                if int(state.data.resources.fuel) < next_reserve*2 or (module == "serre" and (int(state.data.region_index) == 2 or int(state.data.resources.water) < water_need*2)):
+                    state.act("dismantle",state.data.train.slots.find(module))
             if not state.act("choose_route",route):
                 for index in range(3):
                     if state.act("choose_route",index):
@@ -205,7 +265,20 @@ func _run_bot(seed: int, module: String = ""):
         print("BOT seed=",seed," phase=",state.data.phase," step=",state.data.step," turns=",turns," hull=",state.data.hull," resources=",state.data.resources," hero=",_hero(state)," notice=",state.notice)
     return state
 
+func _regional(index: int,local_step: int = 0,seed: int = 17):
+    var state = _new(seed)
+    state.data.region_index = index
+    state.data.region = Model.REGIONS[index].name
+    state.data.step = index*Model.STEPS_PER_REGION+local_step
+    state.data.resources = {"fuel":24,"food":40,"water":40,"scrap":40,"medicine":2,"ammo":20}
+    state._make_routes()
+    return state
+
 func _initialize() -> void:
+    if OS.get_cmdline_user_args().has("--probe"):
+        _run_bot(19)
+        quit(0)
+        return
     _case("seeded initial campaign and routes are deterministic",func():
         var a = _new(7)
         var b = _new(7)
@@ -442,10 +515,10 @@ func _initialize() -> void:
         c._check_loss()
         _check(c.data.phase == "lost","unrecoverable fuel exhaustion still ends the run")
     )
-    _case("legal decisions can win all eight stages including the final threat",func():
+    _case("legal decisions can win all forty stages and five regional threats",func():
         for seed in [1,2,3,7,19,41,83,217]:
             var a = _run_bot(seed)
-            _check(a.data.phase == "won" and a.data.step == 8,"bot campaign should win seed %d" % seed)
+            _check(a.data.phase == "won" and a.data.step == Model.TOTAL_STEPS,"bot campaign should win seed %d" % seed)
             var b = _new()
             _check(b.restore(JSON.parse_string(JSON.stringify(a.snapshot()))),"terminal campaign should round trip")
     )
@@ -453,7 +526,217 @@ func _initialize() -> void:
         for module in ["serre","blindage","atelier"]:
             for seed in [1,7,41]:
                 var a = _run_bot(seed,module)
-                _check(a.data.phase == "won" and a.data.step == 8, "starter %s must support a winning route on seed %d" % [module,seed])
+                _check(a.data.phase == "won" and a.data.step == Model.TOTAL_STEPS, "starter %s must support a winning route on seed %d" % [module,seed])
+    )
+    _case("five region descriptors, distinct maps and safe avoidable hazards",func():
+        _check(Model.REGIONS.size() == 5 and Model.STEPS_PER_REGION == 8 and Model.TOTAL_STEPS == 40,"five regions with forty total stops")
+        var boss_names = {}
+        for index in range(5):
+            var region = Model.REGIONS[index]
+            for key in ["id","name","subtitle","description","floor","wall","accent","hazard_name","hazard_description","boss_name"]:
+                _check(region.has(key) and region[key] is String,"region descriptor field "+key)
+            _check(Color.html_is_valid(region.floor) and Color.html_is_valid(region.wall) and Color.html_is_valid(region.accent),"region colors must parse")
+            boss_names[region.boss_name] = true
+            for seed in [3,19,41]:
+                var a = _regional(index,0,seed)
+                _enter(a,1)
+                var e = a.data.expedition
+                _check(e.hazards.size() > 0 and e.hazards.size() <= 6,"regional hazards must be present but limited")
+                var safe = e.grid.duplicate(true)
+                for hazard in e.hazards:
+                    _check(hazard.kind == region.hazard_kind and hazard.damage == region.hazard_damage,"regional hazard has announced kind and damage")
+                    _check(not (hazard.x == e.exit.x and hazard.y == e.exit.y),"train entrance is protected")
+                    for node in e.nodes:
+                        _check(not (hazard.x == node.x and hazard.y == node.y),"loot and objective tiles are protected")
+                    safe[int(hazard.y)][int(hazard.x)] = 1
+                _check(a._connected(safe),"every safe floor remains connected without crossing a hazard")
+                var b = _new()
+                _check(b.restore(JSON.parse_string(JSON.stringify(a.snapshot()))),"regional map round trip")
+        _check(boss_names.size() == 5,"five distinct boss identities")
+    )
+    _case("regional departure needs and advertised fuel include exact modifiers",func():
+        var desert = _regional(2)
+        var needs = desert.departure_needs()
+        _check(needs.food == 3 and needs.water == 3 and needs.fuel_extra == 0,"desert requires an extra water")
+        desert.act("build","serre")
+        needs = desert.departure_needs()
+        _check(needs.food == 1 and needs.water == 5 and needs.greenhouse_food == 2 and needs.greenhouse_water == 2,"desert plus greenhouse shows NET resource cost")
+        var before = desert.data.resources.duplicate(true)
+        var fuel = int(desert.data.routes[0].fuel)
+        desert.act("choose_route",0)
+        _check(desert.data.resources.food == int(before.food)-int(needs.food) and desert.data.resources.water == int(before.water)-int(needs.water),"departure consumes exactly shown food/water")
+        _check(desert.data.resources.fuel == int(before.fuel)-fuel,"fuel is paid exactly once")
+        var frost = _regional(3)
+        _check(frost.departure_needs().fuel_extra == 1,"frost heating costs an extra fuel")
+        for route in frost.data.routes:
+            _check(route.fuel == route.base_fuel,"pilot minus one and heating plus one are already included")
+    )
+    _case("hazard damage occurs on entry only and never on passive waiting",func():
+        for index in range(5):
+            var a = _regional(index)
+            _enter(a)
+            var e = a.data.expedition
+            e.enemies = []
+            var hazard = e.hazards[0]
+            var neighbor = Vector2i.ZERO
+            for delta in Model.DIRECTIONS.values():
+                var point = Vector2i(int(hazard.x),int(hazard.y))+delta
+                if point.x > 0 and point.y > 0 and point.x < Model.WIDTH-1 and point.y < Model.HEIGHT-1 and e.grid[point.y][point.x] == 0 and not _hazard(e,point):
+                    neighbor = point
+                    break
+            _check(neighbor != Vector2i.ZERO,"hazard must have an accessible safe neighbor")
+            if neighbor == Vector2i.ZERO:
+                continue
+            e.player.x = neighbor.x
+            e.player.y = neighbor.y
+            var hp = int(_hero(a).hp)
+            var delta = Vector2i(int(hazard.x),int(hazard.y))-neighbor
+            _check(a.act("move",delta),"enter hazard legally")
+            _check(_hero(a).hp == hp-int(hazard.damage),"only announced HP damage is applied")
+            a.act("wait")
+            _check(_hero(a).hp == hp-int(hazard.damage),"standing on the tile does not repeat the damage")
+            a.act("move",-delta)
+            a.act("move",delta)
+            _check(_hero(a).hp == hp-int(hazard.damage)*2,"re-entering applies a new announced cost")
+    )
+    _case("boss return advances one region and escale is finite; only stop40 wins",func():
+        for index in range(5):
+            var a = _regional(index,7)
+            for route in a.data.routes:
+                _check(route.kind == "fort","each eighth stop is a threat")
+            _enter(a)
+            var boss: Dictionary = {}
+            for enemy in a.data.expedition.enemies:
+                if enemy.boss:
+                    boss = enemy
+            _check(not boss.is_empty() and boss.name == Model.REGIONS[index].boss_name,"regional threat generated")
+            a.data.expedition.player.x = 11
+            a.data.expedition.player.y = 4
+            _check(not a.act("interact"),"living boss still locks the objective")
+            a.data.expedition.enemies = []
+            _check(a.act("interact") and a.act("event_choice",0),"objective can be secured after defeating threat")
+            a.act("move","S")
+            for step in range(10):
+                a.act("move","W")
+            _check(a.act("return"),"boss loot must be returned to train")
+            _check(a.data.step == (index+1)*8,"global stops remain cumulative")
+            if index < 4:
+                _check(a.data.phase == "base" and a.data.region_index == index+1,"boss opens next region, not victory")
+                _check(a.data.pending_event.context == "region" and a.data.pending_event.choices.size() == 3,"one escale modal")
+                _check(not a.act("choose_route",0) and not a.act("build","serre"),"base actions wait for escale choice")
+                var before = a.data.resources.duplicate(true)
+                a.data.hull = 40
+                _check(a.act("event_choice",1),"paid maintenance offer")
+                _check(a.data.hull == 64 and a.data.resources.scrap == int(before.scrap)-4,"maintenance costs real scrap and repairs partially")
+                _check(a.data.resources.food == before.food and a.data.resources.water == before.water,"no reserve reset")
+                _check(not a.act("event_choice",1),"offer cannot be repeated")
+            else:
+                _check(a.data.phase == "won" and a.data.region_index == 4 and a.data.routes.is_empty(),"victory is only after final fort return")
+    )
+    _case("post-move enemy intent uses the actual regional attack reach",func():
+        var frost = _regional(3)
+        _enter(frost)
+        frost.data.expedition.enemies = [frost._enemy("reach-test",4,5,20,true)]
+        frost.act("wait")
+        var boss = frost.data.expedition.enemies[0]
+        _check(boss.reach == 1 and boss.x == 3 and boss.intent == "","Brise-Givre cannot threaten from two tiles after moving")
+        frost.act("wait")
+        _check(boss.x == 2 and boss.intent == "strike","Brise-Givre announces only when truly adjacent")
+        var desert = _regional(2)
+        _enter(desert)
+        desert.data.expedition.enemies = [desert._enemy("reach-test",4,5,10,false)]
+        desert.act("wait")
+        var raider = desert.data.expedition.enemies[0]
+        _check(raider.reach == 2 and raider.x == 3 and raider.intent == "strike","desert raider announces at its real two-tile range after moving")
+    )
+    _case("five genuine published v01 fixtures migrate without resetting supplies or crew",func():
+        for name in ["base","travel-event","expedition","won","lost"]:
+            var filename = "res://tests/fixtures/v01-"+name+".json"
+            _check(FileAccess.file_exists(filename),"authentic migration fixture exists")
+            if not FileAccess.file_exists(filename):
+                continue
+            var old = JSON.parse_string(FileAccess.get_file_as_string(filename))
+            var original = old.duplicate(true)
+            var expected = _new()._normalise(old)
+            var a = _new(2)
+            var restored = a.restore(old)
+            _check(restored,"published v01 fixture should migrate: "+name)
+            if not restored:
+                continue
+            _check(old == original,"migration does not alter caller data")
+            _check(a.data.version == 2 and a.data.resources == expected.resources and a.data.crew == expected.crew and a.data.train == expected.train,"permanent campaign state preserved")
+            if name == "won":
+                _check(a.data.phase == "base" and a.data.step == 8 and a.data.region_index == 1 and a.data.pending_event.context == "region","old victory becomes Marais escale")
+            elif name == "lost":
+                _check(a.data.phase == "lost" and a.data.reason == old.reason,"old defeat remains terminal")
+            else:
+                _check(a.data.phase == old.phase and a.data.region_index == 0 and a.data.step == old.step,"old in-progress run stays in first region")
+                if name == "expedition":
+                    _check(a.data.expedition.grid == expected.expedition.grid and a.data.expedition.player == expected.expedition.player and a.data.expedition.hazards.is_empty(),"old expedition stays physically unchanged")
+            var b = _new()
+            _check(b.restore(JSON.parse_string(JSON.stringify(a.snapshot()))),"migrated snapshot saves as normal v2")
+    )
+    _case("exhausted old victory gets exactly one partial reprise offer",func():
+        var old = JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/v01-won.json"))
+        old.resources.fuel = 0
+        old.resources.food = 0
+        old.resources.water = 0
+        old.resources.scrap = 0
+        old.hull = 13
+        old.train.slots = ["empty","empty","empty"]
+        old.active_hero = "mira"
+        old.limits = {"fuel":24,"bag":9,"crew":3}
+        for member in old.crew:
+            member.hp = 1 if member.id == "mira" else 40
+        var a = _new()
+        _check(a.restore(old),"exhausted but valid old victory should migrate")
+        _check(a.data.resources.fuel == 0 and a.data.hull == 13,"migration itself grants no hidden full reset")
+        _check(a.data.pending_event.choices.size() == 3 and a.data.pending_event.choices[0].id == "resume","reprise replaces only the first offer")
+        _check(a.act("event_choice",0),"unique reprise can be accepted without resources")
+        _check(a.data.resources.fuel == 6 and a.data.resources.food == 6 and a.data.resources.water == 4 and a.data.hull == 37 and _hero(a).hp == 13,"partial exact reprise benefits")
+        _check(not a.act("event_choice",0),"reprise cannot be repeated")
+        var cheapest = 0
+        for index in range(3):
+            if a.data.routes[index].fuel < a.data.routes[cheapest].fuel:
+                cheapest = index
+        _check(a.act("choose_route",cheapest) and a.data.phase == "travel_event","reprise allows a real next departure")
+    )
+    _case("regional and legacy corruption remains transactional",func():
+        var a = _regional(4)
+        _enter(a)
+        var good = a.snapshot()
+        var text = a.notice
+        var corruptions = []
+        var bad = good.duplicate(true)
+        bad.region_index = 1
+        corruptions.append(bad)
+        bad = good.duplicate(true)
+        bad.expedition.hazards.append(bad.expedition.hazards[0].duplicate(true))
+        corruptions.append(bad)
+        bad = good.duplicate(true)
+        bad.expedition.hazards[0].damage = -1
+        corruptions.append(bad)
+        bad = good.duplicate(true)
+        bad.expedition.hazards[0].x = 1
+        bad.expedition.hazards[0].y = 5
+        corruptions.append(bad)
+        bad = JSON.parse_string(FileAccess.get_file_as_string("res://tests/fixtures/v01-base.json"))
+        bad.step = 39
+        corruptions.append(bad)
+        for candidate in corruptions:
+            _check(not a.restore(candidate),"invalid region/hazard/legacy step is refused")
+            _check(a.snapshot() == good and a.notice == text,"failed restore preserves live state and notice")
+    )
+    _case("regional event text and escale snapshot stay deterministic",func():
+        var titles = {}
+        for index in range(5):
+            var a = _regional(index,2,17)
+            a.act("choose_route",0)
+            titles[a.data.pending_event.title] = true
+            var b = _new()
+            _check(b.restore(JSON.parse_string(JSON.stringify(a.snapshot()))),"regional travel event can be resumed")
+            _check(a.data.pending_event == b.data.pending_event,"event choices, costs and text are not rerolled")
+        _check(titles.size() == 5,"regional places and events differ")
     )
     print("STATE TESTS: %d cases, %d failures" % [cases,failures])
     quit(1 if failures else 0)
