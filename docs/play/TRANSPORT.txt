@@ -1,0 +1,15 @@
+Le Dernier Convoi — transport de la démo web
+
+Le moteur est le modèle web officiel Godot 4.7.2, exporté sans threads.
+Le fichier WebAssembly original dépasse la taille acceptée par l’interface
+GitHub. Il est stocké sans perte sous index.wasm.gz, puis décompressé dans
+le navigateur avec DecompressionStream avant Engine.init.
+
+La seule modification du chargeur Godot index.js remplace le transport de
+Engine.load. Le reste du moteur et sa procédure d’instanciation sont conservés.
+Le script tools/pack-web.cjs vérifie la version, le motif exact du chargeur,
+l’empreinte du WebAssembly et la décompression avant de publier les fichiers.
+Les empreintes et tailles figurent dans convoi-web-pack.json.
+
+Les mentions de copyright et la licence MIT de Godot restent présentes.
+Les textes complets sont inclus à la racine du projet et de la page du jeu.

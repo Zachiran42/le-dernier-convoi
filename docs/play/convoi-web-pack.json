@@ -1,0 +1,72 @@
+{
+  "checkedAt": "2026-10-29T18:00:19.661Z",
+  "engine": "Godot 4.7.2-stable official single-thread release",
+  "transport": "gzip + DecompressionStream -> Response -> official Engine.init/instantiateWasm",
+  "originalWasm": {
+    "bytes": 39514754,
+    "sha256": "fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0"
+  },
+  "gzipWasm": {
+    "bytes": 10153810,
+    "sha256": "9ed85643181ce4cb0434d8f69c1691df1c8f206852578a94d360d01078d97031"
+  },
+  "allFilesBelow25MiB": true,
+  "files": [
+    {
+      "name": "convoi-wasm-loader.js",
+      "bytes": 909
+    },
+    {
+      "name": "index.apple-touch-icon.png",
+      "bytes": 7627
+    },
+    {
+      "name": "index.apple-touch-icon.png.import",
+      "bytes": 980
+    },
+    {
+      "name": "index.audio.position.worklet.js",
+      "bytes": 2973
+    },
+    {
+      "name": "index.audio.worklet.js",
+      "bytes": 7298
+    },
+    {
+      "name": "index.html",
+      "bytes": 5496
+    },
+    {
+      "name": "index.icon.png",
+      "bytes": 7905
+    },
+    {
+      "name": "index.icon.png.import",
+      "bytes": 944
+    },
+    {
+      "name": "index.js",
+      "bytes": 280070
+    },
+    {
+      "name": "index.pck",
+      "bytes": 1873456
+    },
+    {
+      "name": "index.png",
+      "bytes": 21443
+    },
+    {
+      "name": "index.png.import",
+      "bytes": 929
+    },
+    {
+      "name": "index.wasm.gz",
+      "bytes": 10153810
+    },
+    {
+      "name": "TRANSPORT.txt",
+      "bytes": 870
+    }
+  ]
+}
