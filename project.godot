@@ -1,0 +1,32 @@
+; Le Dernier Convoi — Godot 4.7.2, première région jouable.
+config_version=5
+
+[application]
+config/name="Le Dernier Convoi"
+config/description="Un train-refuge dans la brume. Choisissez vos routes, explorez et aménagez vos wagons."
+run/main_scene="res://scenes/main.tscn"
+config/features=PackedStringArray("4.7", "GL Compatibility")
+config/icon="res://art/icon.svg"
+config/version="0.1.0"
+
+[display]
+window/size/viewport_width=720
+window/size/viewport_height=1280
+window/size/window_width_override=432
+window/size/window_height_override=768
+window/stretch/mode="canvas_items"
+window/stretch/aspect="expand"
+window/handheld/orientation=1
+window/size/always_on_top=false
+
+[rendering]
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+textures/default_filters/use_nearest_mipmap_filter=false
+textures/vram_compression/import_etc2_astc=true
+environment/defaults/default_clear_color=Color(0.035, 0.063, 0.075, 1)
+
+[audio]
+driver/enable_input=false
+[input_devices]
+pointing/emulate_mouse_from_touch=false

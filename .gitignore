@@ -1,0 +1,30 @@
+# Godot local state and generated exports
+.godot/
+*.tmp
+*.bak
+*.log
+export.cfg
+export_credentials.cfg
+.idea/
+.vscode/
+local.properties
+*.keystore
+*.jks
+*.key
+.env
+work/
+build/
+dist/
+node_modules/
+# Published builds in docs/downloads and docs/play stay versioned.
+
+# Godot export signing credentials and isolated developer tools
+.godot/export_credentials.cfg
+.tools/
+
+__pycache__/
+*.pyc
+.test-temp/
+
+# Generated Web files are not editor assets.
+docs/**/*.import
