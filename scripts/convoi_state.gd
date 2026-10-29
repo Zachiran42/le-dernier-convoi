@@ -1,7 +1,16 @@
 class_name ConvoiState
 extends RefCounted
 ## Deterministic campaign model. Persisted values are JSON primitives only.
-const VERSION = 1
+const VERSION = 2
+const STEPS_PER_REGION = 8
+const TOTAL_STEPS = 40
+const REGIONS: Array[Dictionary] = [
+    {"id":"ashes","name":"Vallée des Cendres","subtitle":"Les rails sous la poussière","description":"Des dépôts calcinés alimentent le premier tronçon. Les braises restent dangereuses hors de la voie centrale.","floor":"#263239","wall":"#586369","accent":"#e9b36c","hazard_name":"Braises","hazard_description":"Les braises coûtent 4 PV à l’entrée. Contournez-les.","hazard_kind":"ash","hazard_damage":4,"water_extra":0,"fuel_extra":0,"boss_name":"Gardien des Cendres","route_names":["Dépôt des Brasiers","Vergers calcinés","Source sous la cendre"]},
+    {"id":"glass","name":"Marais de Verre","subtitle":"Des reflets qui empoisonnent","description":"Les passerelles traversent des bassins cristallisés. La voie sèche mène au poste ; les caches sont dispersées.","floor":"#193b3b","wall":"#496d69","accent":"#8ed4ad","hazard_name":"Flaques toxiques","hazard_description":"Une flaque coûte 6 PV lorsqu’on y entre. Attendre sur place ne répète pas les dégâts.","hazard_kind":"toxic","hazard_damage":6,"water_extra":0,"fuel_extra":0,"boss_name":"Veilleur de Verre","route_names":["Pompes des Verriers","Jardins des roseaux","Citerne des miroirs"]},
+    {"id":"antennas","name":"Désert des Antennes","subtitle":"La soif sous les pylônes","description":"Les antennes rouillées dominent un désert brûlant. Chaque départ demande une eau supplémentaire.","floor":"#51402b","wall":"#92704a","accent":"#f3ce75","hazard_name":"Tôles brûlantes","hazard_description":"Les tôles chaudes coûtent 5 PV à l’entrée. La chaleur exige +1 eau à chaque départ.","hazard_kind":"heat","hazard_damage":5,"water_extra":1,"fuel_extra":0,"boss_name":"Sentinelle des Antennes","route_names":["Station des relais","Serres sous les toiles","Puits des Ondes"]},
+    {"id":"frost","name":"Crêtes du Givre","subtitle":"Maintenir la chaudière en vie","description":"Les tunnels percent des falaises gelées. Le chauffage exige un carburant supplémentaire par route.","floor":"#273d50","wall":"#718898","accent":"#a8dbed","hazard_name":"Gel coupant","hazard_description":"Les plaques de gel coûtent 6 PV à l’entrée. Le +1 carburant du chauffage est déjà inclus dans les routes.","hazard_kind":"frost","hazard_damage":6,"water_extra":0,"fuel_extra":1,"boss_name":"Brise-Givre","route_names":["Chaudières du Col","Réserves des Alpages","Fontaine du Dégel"]},
+    {"id":"dawn","name":"Bastion de l’Aube","subtitle":"Le dernier signal","description":"Les rails rejoignent une forteresse encore alimentée. Des arcs électriques protègent les installations abandonnées.","floor":"#28334a","wall":"#616e87","accent":"#c4b3f1","hazard_name":"Arcs électriques","hazard_description":"Un arc coûte 8 PV à l’entrée. Une route sûre relie toujours le train au poste.","hazard_kind":"electric","hazard_damage":8,"water_extra":0,"fuel_extra":0,"boss_name":"Vigie de l’Aube","route_names":["Dépôt des Bobines","Potagers du Rempart","Station des Condenseurs"]}
+]
 const WIDTH = 13
 const HEIGHT = 11
 const RESOURCE_KEYS = ["fuel","food","water","scrap","medicine","ammo"]
@@ -29,13 +38,13 @@ func new_run(seed: int = 0) -> void:
         actual = int(Time.get_ticks_usec()) & 0x7fffffff
     if actual == 0:
         actual = 1
-    data = {"version":VERSION,"seed":actual,"rng":actual,"phase":"base","step":0,"region":"Vallée des Cendres",
+    data = {"version":VERSION,"seed":actual,"rng":actual,"phase":"base","step":0,"region_index":0,"region":REGIONS[0].name,
         "resources":{"fuel":18,"food":16,"water":10,"scrap":18,"medicine":2,"ammo":6},"limits":{"fuel":24,"bag":9,"crew":3},"hull":100,
         "crew":[{"id":"mira","name":"Mira","role":"pilote","hp":100,"max_hp":100},{"id":"basile","name":"Basile","role":"mecano","hp":110,"max_hp":110},{"id":"edda","name":"Edda","role":"eclaireuse","hp":85,"max_hp":85}],
         "active_hero":"mira","train":{"slots":["empty","empty","empty"]},"routes":[],"route":{},"pending_event":{},"expedition":{},
         "event_resolved":false,"travel_modifier":0,"blade":0,"turn_total":0,"reason":"","log":[],"last_notice":""}
     _make_routes()
-    _note("Huit haltes avant le fort. Ramenez le butin au train ; une expédition peut être abandonnée.")
+    _note("Cinq régions, quarante haltes. Chaque gardien ouvre une escale ; ramenez le butin au train.")
 
 func snapshot() -> Dictionary:
     return data.duplicate(true)
@@ -52,6 +61,9 @@ func act(action: String, arg: Variant = null) -> bool:
         _note("Résolvez d’abord le choix de trajet.")
         return false
     if data.phase == "base":
+        if not data.pending_event.is_empty():
+            notice = "Choisissez l’offre d’escale ou passez avant de préparer le départ."
+            return false
         match action:
             "choose_route": return _choose_route(arg)
             "build": return _build(arg)
@@ -131,7 +143,7 @@ func _fuel_cost(base: int, state: Dictionary) -> int:
         weight += 1
     if _hero(state).get("role","") == "pilote":
         weight -= 1
-    return maxi(1,base+weight)
+    return maxi(1,base+weight+int(REGIONS[int(state.region_index)].fuel_extra))
 
 func _refresh() -> void:
     data.limits = _derived(data)
@@ -155,38 +167,51 @@ func _add_resources(reward: Dictionary) -> void:
             var cap = int(data.limits.fuel) if resource == "fuel" else (12 if resource == "medicine" else (30 if resource == "ammo" else 99))
             data.resources[resource] = clampi(int(data.resources[resource])+int(reward[resource]),0,cap)
 
+func departure_needs() -> Dictionary:
+    return _departure_for(data)
+
+func _departure_for(state: Dictionary) -> Dictionary:
+    var count = _alive(state)
+    var produced = 2 if _has("serre",state) and int(state.resources.water) >= 2 else 0
+    return {"food":maxi(0,count-produced),"water":int(ceil(float(count)/2.0))+int(REGIONS[int(state.region_index)].water_extra)+(2 if produced else 0),
+        "fuel_extra":int(REGIONS[int(state.region_index)].fuel_extra),"greenhouse_food":produced,"greenhouse_water":2 if produced else 0}
+
 func _consume_needs() -> void:
-    if _has("serre") and int(data.resources.water) >= 2:
-        data.resources.water -= 2
-        _add_resources({"food":2})
-    var food_need = _alive()
-    var water_need = int(ceil(float(_alive())/2.0))
-    var missing = maxi(0,food_need-int(data.resources.food))+maxi(0,water_need-int(data.resources.water))
-    data.resources.food = maxi(0,int(data.resources.food)-food_need)
-    data.resources.water = maxi(0,int(data.resources.water)-water_need)
+    var needs = departure_needs()
+    if int(needs.greenhouse_food) > _alive():
+        _add_resources({"food":int(needs.greenhouse_food)-_alive()})
+    var missing = maxi(0,int(needs.food)-int(data.resources.food))+maxi(0,int(needs.water)-int(data.resources.water))
+    data.resources.food = maxi(0,int(data.resources.food)-int(needs.food))
+    data.resources.water = maxi(0,int(data.resources.water)-int(needs.water))
     if missing > 0:
         data.hull = maxi(0,int(data.hull)-missing*8)
         for member in data.crew:
             member.hp = maxi(0,int(member.hp)-missing*4)
         _note("Pénurie : équipage affaibli, coque −%d." % (missing*8))
 
+func _region_event(index: int) -> Dictionary:
+    return {"id":"region-%d" % index,"context":"region","title":"Escale — "+REGIONS[index].name,
+        "text":"Le gardien est derrière vous. Une seule offre est disponible avant la prochaine région. Équipage, coque et réserves restent tels quels.",
+        "choices":[_choice("supplies","Acheter un ravitaillement",{"scrap":6},{"resources":{"food":6,"water":5,"fuel":4}},"Six ferrailles contre six rations, cinq eaux et quatre carburants. Capacités habituelles."),
+            _choice("repair","Réviser le convoi",{"scrap":4},{"hull":24,"hero_hp":12},"Quatre ferrailles : coque +24 et survivant actif +12 PV, sans réinitialiser les réserves."),
+            _choice("pass","Continuer sans achat",{},{},"Aucun coût, aucun bonus. Vous pourrez recycler vos wagons à la base.")]}
+
 func _make_routes() -> void:
     data.routes = []
-    var final_leg = int(data.step) == 7
-    var stop = int(data.step)
-    var names = [
-        ["Dépôt des Brasiers","Halle des Éclisses","Hangar des Veilleurs","Atelier de Roche-Noire","Gare du Vent Mort","Réserve de l’Éperon","Dernier Relais"][mini(stop,6)],
-        ["Vergers calcinés","Serres de Vauclaire","Caves de la Verrerie","Silos des Courlis","Jardins de Traverse","Grenier des Cimes","Ferme du Dernier Matin"][mini(stop,6)],
-        ["Source sous la cendre","Citernes de l’Orme","Bains abandonnés","Vasque du Vieux Pont","Château d’Eau Muet","Glacier de Brume","Cascade des Signaux"][mini(stop,6)]]
+    var index = int(data.region_index)
+    var region = REGIONS[index]
+    var local_step = int(data.step)%STEPS_PER_REGION
+    var final_leg = local_step == STEPS_PER_REGION-1
     var kinds = ["depot","farm","well"]
-    var rewards = [{"fuel":8},{"food":9},{"water":9}]
-    for index in range(3):
+    var rewards = [{"fuel":8},{"food":9},{"water":9}] if index == 0 else [{"fuel":7,"food":1,"water":1},{"food":7,"water":2},{"water":7,"food":2}]
+    for route_index in range(3):
         var base_fuel = 2+_roll(3)
-        var danger = 1+_roll(2)+(1 if int(data.step) >= 4 and index == 0 else 0)
-        data.routes.append({"id":"halte-%d-%d" % [int(data.step)+1,index],"name":("Fort des Cendres — "+["la brèche","les tunnels","le promontoire"][index]) if final_leg else names[index],
-            "kind":"fort" if final_leg else kinds[index],"base_fuel":base_fuel,"fuel":_fuel_cost(base_fuel,data),"danger":4 if final_leg else danger,
-            "loot":{"scrap":6,"ammo":3} if final_leg else rewards[index].duplicate(true),
-            "description":"Dernière menace : neutralisez le gardien, actionnez le verrou puis revenez au train." if final_leg else "Choisissez le lot au poste et ramenez-le au train. Les vivres sont consommés au départ."})
+        var danger = 1+_roll(2)+(1 if local_step >= 4 and route_index == 0 else 0)
+        data.routes.append({"id":"region-%d-halte-%d-%d" % [index+1,local_step+1,route_index],
+            "name":(str(region.boss_name)+" — "+["la brèche","les tunnels","le promontoire"][route_index]) if final_leg else region.route_names[route_index],
+            "kind":"fort" if final_leg else kinds[route_index],"base_fuel":base_fuel,"fuel":_fuel_cost(base_fuel,data),"danger":4 if final_leg else danger,
+            "loot":{"scrap":6,"ammo":3} if final_leg else rewards[route_index].duplicate(true),
+            "description":("Neutralisez "+str(region.boss_name)+", validez le poste puis revenez au train. " if final_leg else "Choisissez un lot au poste et ramenez-le au train. ")+str(region.hazard_description)})
 
 func _choose_route(value: Variant) -> bool:
     if not _integer(value,0,2):
@@ -247,7 +272,16 @@ func _travel_event() -> Dictionary:
             _choice("cover","Préparer une couverture",{"ammo":2},{"weaken":5},"Deux tirs dépensés ; gardien affaibli de cinq PV."),
             _choice("save","Préserver les réserves",{},{},"Affronter le gardien sans préparation.")]}
     ]
-    var event = events[int(data.step)].duplicate(true)
+    var event = events[int(data.step)%STEPS_PER_REGION].duplicate(true)
+    var region_index = int(data.region_index)
+    if region_index > 0:
+        var titles = [[],["La digue de verre","Les passeurs du marais","La brume acide","Les pompes noyées","Les bassins cristallisés","La passerelle taxée","Un phare dans la vase","Le verrou des Verriers"],["Le viaduc des pylônes","Les caravaniers","La tempête d’ondes","Le distillateur solaire","Le puits des fréquences","Les gardes des antennes","Un signal lointain","Le relais central"],["Le pont de glace","Les réfugiés du col","Le blizzard","Les chauffeurs des tunnels","La citerne prise au gel","Le barrage du glacier","Le fanal des crêtes","Le tunnel de Brise-Givre"],["Les rails du rempart","Les veilleurs de l’aube","La pluie d’étincelles","Le marchand de bobines","Le réservoir des remparts","Le poste sous tension","La dernière balise","Le cœur du Bastion"]]
+        event.title = titles[region_index][int(data.step)%STEPS_PER_REGION]
+        var regional_texts = [["Une digue affaissée coupe les rails au-dessus des bassins. Une voie de contournement subsiste ; sinon, il faudra renforcer le passage ou engager le poids du train sur le tablier fissuré.","Des passeurs ont installé leur camp sur une plateforme sèche. Ils proposent d’échanger quelques provisions contre des pièces et gardent une place près du feu pour les voyageurs de passage.","Une brume âcre monte des eaux et pénètre dans les prises d’air. Le convoi peut attendre qu’elle se dissipe, protéger ses conduits ou avancer malgré les vapeurs.","Sous une station de pompage, un récupérateur conserve des bidons à l’abri de l’humidité. Il accepte des pièces ou un remède en échange de carburant.","Des cuves de récupération contiennent encore de l’eau, mais des dépôts troubles flottent à leur surface. Un traitement ou un filtre permettrait d’en emporter une réserve.","Un groupe armé occupe l’unique passerelle ferroviaire. Il exige des rations pour libérer la voie ; le convoi peut payer, engager ses munitions ou forcer le barrage.","Un ancien phare balise une plateforme au milieu du marais. Ses réserves sont hors de l’axe principal : les récupérer demandera une sortie à pied ou un détour du train.","Le Veilleur de Verre tient le poste qui commande la sortie du marais. Avant l’expédition, l’équipage peut saboter sa protection, préparer des tirs de couverture ou conserver ses réserves."],["Le viaduc des pylônes a cédé sous la chaleur. Une boucle de rails permet de l’éviter, mais le détour coûtera des réserves. Renforcer le tablier ou forcer le passage restent les deux autres issues.","Des caravaniers attendent à l’ombre d’une antenne effondrée. Leurs provisions sont comptées, mais ils échangent encore des rations et de l’eau contre des pièces pour entretenir leurs abris.","Le vent soulève une poussière métallique qui brouille les balises et s’infiltre dans la locomotive. Attendre à couvert, filtrer l’air ou traverser sans protection : le choix doit précéder le prochain départ.","Un distillateur a installé ses bidons sous les panneaux d’une ancienne station. Il propose du carburant contre des pièces ou un remède, sans se soucier de la place restante dans le réservoir du convoi.","Au pied d’un pylône, un puits alimente encore une cuve chargée de sable. Cette eau peut être traitée avec un remède ou passée dans un filtre ; la chaleur rend cette réserve particulièrement précieuse.","Des gardes ont fermé la voie entre deux rangées d’antennes. Ils réclament un tribut en rations. Une couverture armée ou un passage en force permettraient aussi de franchir leur poste.","Un signal persiste dans un relais écarté des rails. Des caisses y sont restées, mais l’atteindre à pied consommera de l’eau ; y conduire le train demandera du carburant.","La Sentinelle des Antennes surveille le relais de sortie. L’équipage dispose d’une dernière occasion d’affaiblir sa protection ou de préparer une couverture avant d’aborder le poste."],["Le givre recouvre les fissures d’un pont métallique suspendu au-dessus du col. Le détour est praticable, mais long. Le convoi peut aussi renforcer le tablier ou tenter de passer malgré ses faiblesses.","Des réfugiés se sont regroupés près d’une chaudière encore tiède. Ils cherchent des pièces pour maintenir leur abri et proposent quelques provisions aux convois qui franchissent le col.","Un blizzard pousse des cristaux de glace dans les conduits du train. Attendre à l’abri consommera des vivres ; protéger l’admission demandera des pièces. Traverser immédiatement expose la coque et l’éclaireur.","Des chauffeurs gardent une réserve de bidons à l’entrée d’un tunnel. Ils échangent du carburant contre des pièces ou un remède. Dans les crêtes, chaque bidon aidera à maintenir la chaudière en marche.","Une citerne abritée conserve de l’eau sous une croûte de gel et de rouille. Son contenu doit être traité ou filtré avant de rejoindre les réserves du convoi.","Un barrage de fortune ferme le tunnel du glacier. Ses occupants exigent des rations pour ouvrir les grilles. Payer, tirer pour dégager la voie ou engager la locomotive : aucune option n’est sans coût.","Un fanal éclaire encore un dépôt à l’écart du tracé. L’équipage peut aller chercher ses caisses à pied ou y conduire le train, au prix des réserves annoncées.","Brise-Givre garde le tunnel qui mène hors des crêtes. Avant de quitter le train, l’équipage peut fragiliser sa cuirasse ou préparer des tirs de couverture. Préserver les fournitures reste possible."],["Une section de rails s’est affaissée le long du rempart. Le convoi peut emprunter une voie extérieure, consolider le passage ou forcer la locomotive à franchir le tablier endommagé.","Des veilleurs entretiennent un camp entre les anciens postes du Bastion. Ils manquent de pièces, mais possèdent encore quelques provisions à échanger avant l’ultime traversée.","Des étincelles et une poudre chargée tombent des installations au-dessus de la voie. Attendre sous un abri ou protéger les prises d’air limitera les dégâts. Le convoi peut aussi avancer sans attendre.","Un marchand a rangé ses derniers bidons derrière des bobines désaffectées. Il accepte des pièces ou un remède contre du carburant. Il faudra vérifier la capacité du réservoir avant de conclure l’échange.","Un réservoir du rempart contient encore de l’eau mêlée à des résidus de corrosion. L’équipage peut la traiter, fabriquer un filtre ou laisser ces réserves sur place.","Des hommes armés contrôlent un poste ferroviaire sous tension. Ils demandent des rations pour lever le barrage. Une couverture de tirs ou un passage en force pourraient ouvrir la même voie.","La dernière balise transmet depuis une annexe du Bastion. Des fournitures y attendent encore ; atteindre ce relais demandera une sortie à pied ou un détour du train.","La Vigie de l’Aube tient le dernier poste. Il n’y aura plus de région après celle-ci. Saboter sa cuirasse, préparer une couverture ou garder les réserves : l’équipage doit choisir avant l’expédition finale."]]
+        event.text = regional_texts[region_index-1][int(data.step)%STEPS_PER_REGION]
+        if region_index == 2 and event.id == "water":
+            event.choices[1].effects.resources.water = 6
+            event.choices[1].description = "Trois ferrailles contre six eaux ; la chaleur augmente les besoins de trajet."
     event.context = "travel"
     return event
 
@@ -292,6 +326,11 @@ func _event_choice(value: Variant) -> bool:
     if effects.get("join",false):
         data.crew.append({"id":"ilyan","name":"Ilyan","role":"aide","hp":75,"max_hp":75})
     data.pending_event = {}
+    if event.context == "region":
+        data.event_resolved = false
+        _note(str(choice.description)+" Escale terminée : préparez la prochaine halte.")
+        _check_loss()
+        return true
     data.event_resolved = true
     _note(str(choice.description)+" Prêt à explorer : continuer.")
     _check_loss()
@@ -411,6 +450,8 @@ func _heal(in_expedition: bool) -> bool:
         _tick()
     return true
 func _start_expedition() -> void:
+    var regional = int(data.region_index)
+    var caches = [[Vector2i(7,3),Vector2i(4,7)],[Vector2i(6,2),Vector2i(8,8)],[Vector2i(8,3),Vector2i(4,8)],[Vector2i(5,2),Vector2i(7,8)],[Vector2i(9,3),Vector2i(5,8)]]
     var grid = []
     var seen = []
     var visible = []
@@ -425,10 +466,10 @@ func _start_expedition() -> void:
         grid.append(row)
         seen.append(fog)
         visible.append(light)
-    for attempt in range(24):
+    for attempt in range(24+regional*4):
         var x = 2+_roll(9)
         var y = 1+_roll(9)
-        if y == 5 or x == 11 or grid[y][x] == 1 or Vector2i(x,y) in [Vector2i(7,3),Vector2i(4,7),Vector2i(8,7)]:
+        if y == 5 or x == 11 or grid[y][x] == 1 or Vector2i(x,y) in [Vector2i(7,3),Vector2i(4,7),Vector2i(8,7),caches[regional][0],caches[regional][1]]:
             continue
         grid[y][x] = 1
         if not _connected(grid):
@@ -443,20 +484,20 @@ func _start_expedition() -> void:
     elif kind == "fort":
         alternate = {"medicine":2,"scrap":3}
     var nodes = [
-        {"id":"objective","x":11,"y":5,"kind":"objective","name":"Verrou du fort" if kind == "fort" else "Réserve du poste","loot":primary,"alternate":alternate,"taken":false},
-        {"id":"cache-a","x":7,"y":3,"kind":"cache","name":"Caisse abandonnée","loot":{"scrap":3},"alternate":{"ammo":2},"taken":false},
-        {"id":"cache-b","x":4,"y":7,"kind":"cache","name":"Sac de voyage","loot":{"food":2},"alternate":{"water":2},"taken":false}]
+        {"id":"objective","x":11,"y":5,"kind":"objective","name":"Poste de "+str(REGIONS[regional].boss_name) if kind == "fort" else "Réserve — "+str(REGIONS[regional].name),"loot":primary,"alternate":alternate,"taken":false},
+        {"id":"cache-a","x":int(caches[regional][0].x),"y":int(caches[regional][0].y),"kind":"cache","name":"Caisse abandonnée","loot":{"scrap":3},"alternate":{"ammo":2},"taken":false},
+        {"id":"cache-b","x":int(caches[regional][1].x),"y":int(caches[regional][1].y),"kind":"cache","name":"Sac de voyage","loot":{"food":2},"alternate":{"water":2},"taken":false}]
     var enemies = []
     if kind == "fort":
-        enemies.append(_enemy("warden",10,5,maxi(12,20-int(data.travel_modifier)),true))
+        enemies.append(_enemy("warden",10,5,maxi(12,int([20,20,18,24,22][regional])-int(data.travel_modifier)),true))
         enemies.append(_enemy("raider-a",7,3,10,false))
         enemies.append(_enemy("raider-b",8,7,10,false))
     else:
-        enemies.append(_enemy("raider-a",7,5,9+int(int(data.step)/3.0),false))
+        enemies.append(_enemy("raider-a",7,5,9+int((int(data.step)%STEPS_PER_REGION)/3.0),false))
         if int(data.route.danger) >= 3:
             enemies.append(_enemy("raider-b",8,7,10,false))
     data.expedition = {"width":WIDTH,"height":HEIGHT,"grid":grid,"seen":seen,"visible":visible,
-        "player":{"x":1,"y":5,"facing":"E"},"exit":{"x":1,"y":5},"nodes":nodes,"enemies":enemies,
+        "player":{"x":1,"y":5,"facing":"E"},"exit":{"x":1,"y":5},"nodes":nodes,"enemies":enemies,"hazards":_make_hazards(grid,nodes,regional),
         "turns":0,"carried":_empty_resources(),"capacity":int(data.limits.bag),"objective_done":false}
     data.phase = "expedition"
     data.event_resolved = false
@@ -464,7 +505,40 @@ func _start_expedition() -> void:
     _note("Explorez, récupérez le lot au poste, puis revenez au train. Les tirs sont rares ; une case rouge annonce la prochaine frappe.")
 
 func _enemy(id: String,x: int,y: int,hp: int,boss: bool) -> Dictionary:
-    return {"id":id,"x":x,"y":y,"hp":hp,"max_hp":hp,"boss":boss,"intent":"","intent_x":-1,"intent_y":-1,"stun":0,"cooldown":0,"alert":0}
+    var regional = int(data.region_index)
+    var damage = int([13,14,10,16,14][regional]) if boss else (9 if regional >= 3 else 8)
+    var reach = int([2,2,3,1,2][regional]) if boss else (2 if regional == 2 else 1)
+    var recovery = 2 if regional == 3 else 1
+    return {"id":id,"name":str(REGIONS[regional].boss_name) if boss else ["Pillard des rails","Guetteur des roseaux","Tireur des pylônes","Marcheur du givre","Garde du Bastion"][regional],
+        "x":x,"y":y,"hp":hp,"max_hp":hp,"boss":boss,"damage":damage,"reach":reach,"recovery":recovery,
+        "intent":"","intent_x":-1,"intent_y":-1,"stun":0,"cooldown":0,"alert":0}
+
+func _make_hazards(grid: Array,nodes: Array,regional: int) -> Array:
+    var hazards = []
+    var protected = {Vector2i(1,5):true}
+    for node in nodes:
+        protected[Vector2i(int(node.x),int(node.y))] = true
+    var blocked = grid.duplicate(true)
+    for attempt in range(100):
+        if hazards.size() >= mini(6,2+regional):
+            break
+        var x = 2+_roll(WIDTH-3)
+        var y = 1+_roll(HEIGHT-2)
+        var point = Vector2i(x,y)
+        if y == 5 or grid[y][x] != 0 or blocked[y][x] != 0 or protected.has(point):
+            continue
+        blocked[y][x] = 1
+        if not _connected(blocked):
+            blocked[y][x] = 0
+            continue
+        hazards.append({"x":x,"y":y,"kind":REGIONS[regional].hazard_kind,"damage":REGIONS[regional].hazard_damage})
+    return hazards
+
+func _hazard_at(x: int,y: int) -> Dictionary:
+    for hazard in data.expedition.hazards:
+        if int(hazard.x) == x and int(hazard.y) == y:
+            return hazard
+    return {}
 
 func _empty_resources() -> Dictionary:
     return {"fuel":0,"food":0,"water":0,"scrap":0,"medicine":0,"ammo":0}
@@ -512,6 +586,14 @@ func _move(value: Variant) -> bool:
         return false
     player.x = x
     player.y = y
+    var hazard = _hazard_at(x,y)
+    if not hazard.is_empty():
+        var hero = _hero()
+        hero.hp = maxi(0,int(hero.hp)-int(hazard.damage))
+        _note(str(REGIONS[int(data.region_index)].hazard_name)+" : −%d PV à l’entrée. Un détour sûr existe." % int(hazard.damage))
+        if int(hero.hp) <= 0:
+            _retreat(true)
+            return true
     _tick()
     return true
 
@@ -591,18 +673,25 @@ func _return_to_train() -> bool:
         return false
     _add_resources(e.carried)
     data.step += 1
+    data.region_index = mini(REGIONS.size()-1,int(int(data.step)/float(STEPS_PER_REGION)))
+    data.region = REGIONS[int(data.region_index)].name
     data.phase = "base"
     data.route = {}
     data.expedition = {}
     data.pending_event = {}
-    if int(data.step) >= 8:
+    data.event_resolved = false
+    if int(data.step) >= TOTAL_STEPS:
         data.phase = "won"
         data.routes = []
-        data.reason = "Le gardien est tombé. Le dernier convoi franchit la Vallée des Cendres."
+        data.reason = "La Vigie est tombée. Le dernier convoi a traversé les cinq régions et rejoint le Bastion de l’Aube."
         _note(data.reason)
     else:
         _make_routes()
-        _note("Halte %d / 8 sécurisée. Butin déchargé ; préparez le prochain départ." % int(data.step))
+        if int(data.step)%STEPS_PER_REGION == 0:
+            data.pending_event = _region_event(int(data.region_index))
+            _note("Gardien neutralisé. Nouvelle région : "+str(data.region)+". Choisissez une offre d’escale ou passez.")
+        else:
+            _note("Halte %d / %d sécurisée. Butin déchargé ; préparez le prochain départ." % [int(data.step),TOTAL_STEPS])
         _check_loss()
     return true
 
@@ -650,7 +739,7 @@ func _enemy_turn() -> void:
             continue
         if enemy.intent == "strike":
             if int(e.player.x) == int(enemy.intent_x) and int(e.player.y) == int(enemy.intent_y):
-                var damage = maxi(1,(13 if enemy.boss else 8)-(2 if _has("blindage") else 0))
+                var damage = maxi(1,int(enemy.damage)-(2 if _has("blindage") else 0))
                 hero.hp = maxi(0,int(hero.hp)-damage)
                 _note("Frappe annoncée reçue : −%d PV. Déplacez-vous pour éviter la suivante." % damage)
                 if int(hero.hp) <= 0:
@@ -659,14 +748,14 @@ func _enemy_turn() -> void:
             enemy.intent = ""
             enemy.intent_x = -1
             enemy.intent_y = -1
-            enemy.cooldown = 1
+            enemy.cooldown = int(enemy.recovery)
             continue
         if int(enemy.cooldown) > 0:
             enemy.cooldown -= 1
             continue
         var distance = absi(int(enemy.x)-int(e.player.x))+absi(int(enemy.y)-int(e.player.y))
         var clear = _line_clear(e.grid,int(enemy.x),int(enemy.y),int(e.player.x),int(e.player.y))
-        if distance <= (2 if enemy.boss else 1) and clear:
+        if distance <= int(enemy.reach) and clear:
             enemy.intent = "strike"
             enemy.intent_x = int(e.player.x)
             enemy.intent_y = int(e.player.y)
@@ -680,7 +769,7 @@ func _enemy_turn() -> void:
                 enemy.x += step.x
                 enemy.y += step.y
             distance = absi(int(enemy.x)-int(e.player.x))+absi(int(enemy.y)-int(e.player.y))
-            if distance <= (2 if enemy.boss else 1) and _line_clear(e.grid,int(enemy.x),int(enemy.y),int(e.player.x),int(e.player.y)):
+            if distance <= int(enemy.reach) and _line_clear(e.grid,int(enemy.x),int(enemy.y),int(e.player.x),int(e.player.y)):
                 enemy.intent = "strike"
                 enemy.intent_x = int(e.player.x)
                 enemy.intent_y = int(e.player.y)
@@ -770,6 +859,10 @@ func _connected(grid: Array) -> bool:
     return seen.size() == floor_count
 
 func _can_recover_fuel() -> bool:
+    if data.pending_event.get("context","") == "region":
+        for choice in data.pending_event.choices:
+            if int(choice.effects.get("resources",{}).get("fuel",0)) > 0 and _can_pay(choice.cost):
+                return true
     # Before declaring defeat, consider legal role changes, dismantling and
     # building/using an atelier. Optional wagon weight can always be removed.
     var base_cost = 999
@@ -783,20 +876,29 @@ func _can_recover_fuel() -> bool:
             mechanic = mechanic or member.role == "mecano"
     var compulsory_weight = 1 if _alive() > 3 else 0
     var saving = 1 if pilot else 0
-    if int(data.resources.fuel) >= maxi(1,base_cost+compulsory_weight-saving):
+    if int(data.resources.fuel) >= maxi(1,base_cost+compulsory_weight-saving+int(REGIONS[int(data.region_index)].fuel_extra)):
         return true
     var scrap = int(data.resources.scrap)
     for module in data.train.slots:
         if module != "empty" and module != "atelier" and not (module == "dortoir" and _alive() > 3):
             scrap += int(int(MODULES[module].cost.scrap)/2.0)
     var construction = 0 if _has("atelier") else int(MODULES.atelier.cost.scrap)
-    var factory_fuel = maxi(1,base_cost+compulsory_weight+1-saving)
+    var factory_fuel = maxi(1,base_cost+compulsory_weight+1-saving+int(REGIONS[int(data.region_index)].fuel_extra))
     var batches = maxi(1,int(ceil(float(factory_fuel-int(data.resources.fuel))/4.0)))
     return int(data.resources.water) >= batches and scrap >= construction+batches*(3 if mechanic else 4)
 
 func _check_loss() -> void:
     if data.phase in ["won","lost"]:
         return
+    if _alive() > 0 and int(_hero().get("hp",0)) <= 0:
+        if data.phase != "base":
+            _retreat(true)
+            return
+        for member in data.crew:
+            if int(member.hp) > 0:
+                data.active_hero = member.id
+                break
+        _refresh()
     var reason = ""
     if int(data.hull) <= 0:
         reason = "La coque du dernier convoi a cédé."
@@ -884,7 +986,9 @@ func _event_valid(event: Variant,state: Dictionary) -> bool:
         return true
     if not event.has_all(["id","title","text","context","choices"]):
         return false
-    if not event.id is String or not event.title is String or not event.text is String or not event.context in ["travel","loot"] or not event.choices is Array or event.choices.size() < 2 or event.choices.size() > 3:
+    if not event.id is String or not event.title is String or not event.text is String or not event.context in ["travel","loot","region"] or not event.choices is Array or event.choices.size() < 2 or event.choices.size() > 3:
+        return false
+    if event.context == "region" and (state.phase != "base" or int(state.region_index) < 1 or int(state.step)%STEPS_PER_REGION != 0 or event.id != "region-%d" % int(state.region_index)):
         return false
     if event.context == "travel" and state.phase != "travel_event":
         return false
@@ -926,7 +1030,7 @@ func _expedition_valid(e: Variant,state: Dictionary) -> bool:
         return false
     if state.phase != "expedition":
         return e.is_empty()
-    if not e.has_all(["width","height","grid","seen","visible","player","exit","nodes","enemies","turns","carried","capacity","objective_done"]):
+    if not e.has_all(["width","height","grid","seen","visible","player","exit","nodes","enemies","hazards","turns","carried","capacity","objective_done"]):
         return false
     if e.width != WIDTH or e.height != HEIGHT or not _integer(e.turns,0,10000) or e.capacity != state.limits.bag or not e.objective_done is bool or not _resource_valid(e.carried,true) or _sum_resources(e.carried) > int(e.capacity):
         return false
@@ -972,9 +1076,9 @@ func _expedition_valid(e: Variant,state: Dictionary) -> bool:
         return false
     var occupied = {Vector2i(int(e.player.x),int(e.player.y)):true}
     for enemy in e.enemies:
-        if not enemy is Dictionary or not enemy.has_all(["id","x","y","hp","max_hp","boss","intent","intent_x","intent_y","stun","cooldown","alert"]):
+        if not enemy is Dictionary or not enemy.has_all(["id","name","x","y","hp","max_hp","boss","damage","reach","recovery","intent","intent_x","intent_y","stun","cooldown","alert"]):
             return false
-        if not enemy.id is String or ids.has(enemy.id) or not _integer(enemy.x,1,WIDTH-2) or not _integer(enemy.y,1,HEIGHT-2) or e.grid[int(enemy.y)][int(enemy.x)] != 0 or not _integer(enemy.max_hp,1,30) or not _integer(enemy.hp,1,int(enemy.max_hp)) or not enemy.boss is bool or not enemy.intent in ["","strike"] or not _integer(enemy.stun,0,1) or not _integer(enemy.cooldown,0,1) or not _integer(enemy.alert,0,5):
+        if not enemy.id is String or ids.has(enemy.id) or not _integer(enemy.x,1,WIDTH-2) or not _integer(enemy.y,1,HEIGHT-2) or e.grid[int(enemy.y)][int(enemy.x)] != 0 or not _integer(enemy.max_hp,1,30) or not _integer(enemy.hp,1,int(enemy.max_hp)) or not enemy.boss is bool or not enemy.intent in ["","strike"] or not _integer(enemy.stun,0,1) or not _integer(enemy.cooldown,0,2) or not enemy.name is String or not _integer(enemy.damage,1,20) or not _integer(enemy.reach,1,3) or not _integer(enemy.recovery,1,2) or not _integer(enemy.alert,0,5):
             return false
         var position = Vector2i(int(enemy.x),int(enemy.y))
         if occupied.has(position):
@@ -986,14 +1090,34 @@ func _expedition_valid(e: Variant,state: Dictionary) -> bool:
                 return false
         elif enemy.intent_x != -1 or enemy.intent_y != -1:
             return false
+    if not e.hazards is Array or e.hazards.size() > 6:
+        return false
+    var safe_grid = e.grid.duplicate(true)
+    var hazard_points = {}
+    for hazard in e.hazards:
+        if not hazard is Dictionary or not hazard.has_all(["x","y","kind","damage"]) or not _integer(hazard.x,1,WIDTH-2) or not _integer(hazard.y,1,HEIGHT-2):
+            return false
+        var point = Vector2i(int(hazard.x),int(hazard.y))
+        if e.grid[point.y][point.x] != 0 or hazard_points.has(point) or point == Vector2i(1,5) or hazard.kind != REGIONS[int(state.region_index)].hazard_kind or hazard.damage != REGIONS[int(state.region_index)].hazard_damage:
+            return false
+        for node in e.nodes:
+            if int(node.x) == point.x and int(node.y) == point.y:
+                return false
+        safe_grid[point.y][point.x] = 1
+        hazard_points[point] = true
+    if not _connected(safe_grid):
+        return false
+    if e.objective_done and state.route.kind == "fort":
+        for enemy in e.enemies:
+            if enemy.boss:
+                return false
     return true
 
-func restore(value: Variant) -> bool:
-    if not value is Dictionary or not _json_safe(value):
+func _validate_candidate(candidate: Dictionary,legacy: bool = false) -> bool:
+    var required = ["version","seed","rng","phase","step","region_index","region","resources","limits","hull","crew","active_hero","train","routes","route","pending_event","expedition","event_resolved","travel_modifier","blade","turn_total","reason","log","last_notice"]
+    if not candidate.has_all(required) or candidate.version != (1 if legacy else VERSION) or not _integer(candidate.seed,1,2147483647) or not _integer(candidate.rng,0,2147483647) or not candidate.phase in ["base","travel_event","expedition","won","lost"] or not _integer(candidate.step,0,8 if legacy else TOTAL_STEPS) or not _integer(candidate.region_index,0,REGIONS.size()-1) or candidate.region != REGIONS[int(candidate.region_index)].name:
         return false
-    var candidate: Dictionary = _normalise(value)
-    var required = ["version","seed","rng","phase","step","region","resources","limits","hull","crew","active_hero","train","routes","route","pending_event","expedition","event_resolved","travel_modifier","blade","turn_total","reason","log","last_notice"]
-    if not candidate.has_all(required) or candidate.version != VERSION or not _integer(candidate.seed,1,2147483647) or not _integer(candidate.rng,0,2147483647) or not candidate.phase in ["base","travel_event","expedition","won","lost"] or not _integer(candidate.step,0,8) or candidate.region != "Vallée des Cendres":
+    if not legacy and int(candidate.region_index) != mini(REGIONS.size()-1,int(int(candidate.step)/float(STEPS_PER_REGION))):
         return false
     if not _resource_valid(candidate.resources,true) or not candidate.limits is Dictionary or not _integer(candidate.hull,0,100) or not candidate.crew is Array or candidate.crew.size() < 3 or candidate.crew.size() > 4 or not candidate.active_hero is String:
         return false
@@ -1027,10 +1151,10 @@ func restore(value: Variant) -> bool:
     if candidate.phase in ["won","lost"]:
         if not candidate.routes.is_empty() or not candidate.route.is_empty() or not candidate.pending_event.is_empty() or not candidate.expedition.is_empty():
             return false
-        if candidate.phase == "won" and (candidate.step != 8 or candidate.hull <= 0 or _alive(candidate) == 0):
+        if candidate.phase == "won" and (candidate.step != (8 if legacy else TOTAL_STEPS) or candidate.hull <= 0 or _alive(candidate) == 0):
             return false
     else:
-        if candidate.step >= 8 or candidate.routes.size() != 3 or candidate.hull <= 0 or _alive(candidate) == 0:
+        if candidate.step >= (8 if legacy else TOTAL_STEPS) or candidate.routes.size() != 3 or candidate.hull <= 0 or _alive(candidate) == 0:
             return false
         var route_ids = {}
         for route in candidate.routes:
@@ -1044,9 +1168,56 @@ func restore(value: Variant) -> bool:
                 return false
     if not _expedition_valid(candidate.expedition,candidate) or not _event_valid(candidate.pending_event,candidate):
         return false
-    if candidate.phase == "base" and not candidate.pending_event.is_empty():
+    if candidate.phase == "base" and not candidate.pending_event.is_empty() and candidate.pending_event.get("context","") != "region":
+        return false
+    if legacy and candidate.pending_event.get("context","") == "region":
         return false
     if candidate.phase == "travel_event" and candidate.pending_event.is_empty() != candidate.event_resolved:
+        return false
+    return true
+
+func _prepare_legacy(candidate: Dictionary) -> Dictionary:
+    if not candidate.has_all(["version","phase","step","region","expedition"]) or candidate.version != 1 or not _integer(candidate.step,0,8) or candidate.region != REGIONS[0].name:
+        return {}
+    candidate.region_index = 0
+    if candidate.phase == "expedition":
+        if not candidate.expedition is Dictionary or not candidate.expedition.has("enemies") or not candidate.expedition.enemies is Array:
+            return {}
+        candidate.expedition.hazards = []
+        for enemy in candidate.expedition.enemies:
+            if not enemy is Dictionary or not enemy.has("boss") or not enemy.boss is bool:
+                return {}
+            enemy.name = REGIONS[0].boss_name if enemy.boss else "Pillard des rails"
+            enemy.damage = 13 if enemy.boss else 8
+            enemy.reach = 2 if enemy.boss else 1
+            enemy.recovery = 1
+    return candidate
+
+func restore(value: Variant) -> bool:
+    if not value is Dictionary or not _json_safe(value):
+        return false
+    var candidate: Dictionary = _normalise(value)
+    if candidate.get("version",0) == 1:
+        candidate = _prepare_legacy(candidate)
+        if candidate.is_empty() or not _validate_candidate(candidate,true):
+            return false
+        candidate.version = VERSION
+        candidate.region_index = mini(REGIONS.size()-1,int(int(candidate.step)/float(STEPS_PER_REGION)))
+        candidate.region = REGIONS[int(candidate.region_index)].name
+        if candidate.phase == "won":
+            candidate.phase = "base"
+            candidate.reason = ""
+            candidate.event_resolved = false
+            candidate.pending_event = _region_event(int(candidate.region_index))
+            candidate.pending_event.title = "Ravitaillement unique de reprise 0.1"
+            candidate.pending_event.text = "Votre ancienne victoire est conservée. Ce soutien unique permet de reprendre sans réinitialiser le convoi."
+            candidate.pending_event.choices = [_choice("resume","Ravitaillement unique de reprise 0.1",{},{"resources":{"fuel":6,"food":6,"water":4},"hull":24,"hero_hp":12},"Offre unique : six carburants, six rations, quatre eaux, coque +24 et survivant actif +12 PV."),candidate.pending_event.choices[1],candidate.pending_event.choices[2]]
+            var temporary = get_script().new()
+            temporary.data = candidate
+            temporary._make_routes()
+            temporary._note("La traversée des Cendres est conservée. Quatre régions supplémentaires vous attendent.")
+            candidate = temporary.snapshot()
+    if not _validate_candidate(candidate):
         return false
     data = candidate
     notice = str(data.last_notice)

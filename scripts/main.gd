@@ -35,6 +35,7 @@ var aim = Vector2i(1, 0)
 var ui_scale = 1.0
 var ui_offset = Vector2.ZERO
 var last_phase = ""
+var inspected_region = -1
 
 func _ready() -> void:
 	Engine.max_fps = 30
@@ -100,9 +101,12 @@ func _message(value: String) -> void:
 
 func _action(action: String, arg: Variant = null) -> void:
 	buttons.clear()
+	var previous_region = _region_index()
 	var previous_notice = model.notice
 	var previous_hp = int(_active_hero().get("hp", 0))
 	var accepted = model.act(action, arg)
+	if _region_index() != previous_region:
+		inspected_region = -1
 	_save()
 	if accepted and not model.data.get("pending_event", {}).is_empty():
 		toast_timer = 0.0
@@ -242,6 +246,10 @@ func _activate(id: String) -> void:
 	elif id == "close":
 		help_open = false
 		credits_open = false
+	elif id.begins_with("region:"):
+		var index = int(id.get_slice(":", 1))
+		if index >= 0 and index < Model.REGIONS.size():
+			inspected_region = index
 	elif id.begins_with("tab:"):
 		base_tab = id.get_slice(":", 1)
 	elif id.begins_with("slot:"):
@@ -276,9 +284,10 @@ func _start_new() -> void:
 	screen = "game"
 	base_tab = "train"
 	selected_slot = 0
+	inspected_region = -1
 	paused = false
 	_save()
-	_message("Le phare du Col répond encore. Préparez le convoi, puis choisissez une route.")
+	_message("Le " + str(Model.REGIONS.back().name) + " répond encore. Préparez le convoi pour " + str(Model.TOTAL_STEPS) + " haltes.")
 
 func _draw() -> void:
 	if not font:
@@ -286,7 +295,7 @@ func _draw() -> void:
 	buttons.clear()
 	ui_scale = minf(size.x / 720.0, size.y / 1280.0)
 	ui_offset = (size - Vector2(720, 1280) * ui_scale) * 0.5
-	draw_rect(Rect2(Vector2.ZERO, size), INK)
+	draw_rect(Rect2(Vector2.ZERO, size), Color(_region().get("floor", "#18333b")).darkened(0.58) if screen == "game" else INK)
 	draw_set_transform(ui_offset, 0, Vector2.ONE * ui_scale)
 	if screen == "home":
 		_draw_home()
@@ -416,38 +425,37 @@ func _draw_home() -> void:
 	_text("UNE LUMIÈRE AU BOUT DES RAILS", Vector2(40, 82), 18, AMBER)
 	_text("LE DERNIER", Vector2(38, 615), 68)
 	_text("CONVOI", Vector2(38, 690), 82)
-	_text("VALLÉE DES CENDRES", Vector2(42, 742), 20, AMBER)
-	_paragraph("Votre refuge avance dans la brume. Chaque wagon est une promesse. Chaque détour a un prix.", Vector2(42, 796), 626, 24, MUTED, 34)
+	_text(str(Model.REGIONS.size()) + " RÉGIONS · " + str(Model.TOTAL_STEPS) + " HALTES · UN TRAIN-REFUGE", Vector2(42, 742), 19, AMBER)
+	_paragraph("Des Cendres au " + str(Model.REGIONS.back().name) + ", votre refuge traverse des paysages hostiles. Chaque wagon compte. Chaque détour a un prix.", Vector2(42, 790), 626, 23, MUTED, 31, 3)
 	if saved_run:
-		_button("resume", Rect2(40, 905, 640, 74), "REPRENDRE LE VOYAGE", "Étape " + str(int(model.data.get("step", 0))) + " / 8 · sauvegarde locale", true, true)
-		_button("new", Rect2(40, 995, 640, 82), "Nouveau convoi")
+		_button("resume", Rect2(40, 897, 640, 88), "REPRENDRE LE VOYAGE", _progress_text(), true, true)
+		_button("new", Rect2(40, 997, 640, 88), "Nouveau convoi")
 	else:
-		_button("new", Rect2(40, 905, 640, 80), "PRENDRE LES COMMANDES", "Un train · trois wagons · huit étapes", true, true)
-		_button("help", Rect2(40, 1002, 640, 82), "Comment survivre")
-	_button("help", Rect2(40, 1090, 310, 82), "Guide de voyage")
-	_button("credits", Rect2(370, 1090, 310, 82), "Crédits et licence")
-	_center("0.1.0 · PREMIÈRE RÉGION JOUABLE · HORS LIGNE", Rect2(25, 1170, 670, 36), 15, MUTED)
+		_button("new", Rect2(40, 897, 640, 88), "PRENDRE LES COMMANDES", str(Model.REGIONS.size()) + " régions · " + str(Model.STEPS_PER_REGION) + " haltes chacune", true, true)
+		_button("help", Rect2(40, 997, 640, 88), "Comment survivre")
+	_button("help", Rect2(40, 1097, 310, 88), "Guide de voyage")
+	_button("credits", Rect2(370, 1097, 310, 88), "Crédits et licence")
+	_center("0.2.0 · CAMPAGNE COMPLÈTE · HORS LIGNE", Rect2(25, 1215, 670, 36), 16, MUTED)
 
 func _draw_header() -> void:
 	_text("LE DERNIER CONVOI", Vector2(25, 44), 24)
-	_text("VALLÉE DES CENDRES", Vector2(26, 70), 14, AMBER)
-	_button("pause", Rect2(570, 3, 126, 82), "Ⅱ PAUSE")
+	_text(str(_region().name).to_upper(), Vector2(26, 70), 15, _accent())
+	_button("pause", Rect2(570, 0, 126, 88), "Ⅱ PAUSE")
 	var resource = model.data.get("resources", {})
 	var keys = ["fuel", "food", "water", "scrap", "medicine", "ammo"]
 	var titles = ["CARBURANT", "RATIONS", "EAU", "FERRAILLE", "SOINS", "MUNITIONS"]
-	for i in range(6):
+	for i in range(keys.size()):
 		var rect = Rect2(24 + i * 114, 91, 104, 77)
 		_panel(rect, PANEL, LINE, 10)
-		_text(titles[i], rect.position + Vector2(9, 23), 16, MUTED)
-		_text(str(int(resource.get(keys[i], 0))), rect.position + Vector2(10, 58), 28, AMBER if i == 0 else PAPER)
+		_text(titles[i], rect.position + Vector2(9, 23), 11, MUTED)
+		_text(str(int(resource.get(keys[i], 0))), rect.position + Vector2(10, 58), 28, _accent() if i == 0 else PAPER)
 
 func _draw_base() -> void:
 	if model.data.get("phase") == "travel_event" and model.data.get("pending_event", {}).is_empty():
 		_draw_arrival()
 		return
-	var step = int(model.data.get("step", 0))
-	_text("ÉTAPE " + str(step) + " / 8", Vector2(28, 209), 17, MINT)
-	_text("Le prochain départ se prépare ici.", Vector2(28, 237), 26)
+	_text(_progress_text(), Vector2(28, 207), 16, _accent())
+	_text(str(_region().name), Vector2(28, 236), 26)
 	_button("tab:train", Rect2(24, 246, 218, 88), "LE CONVOI", "", true, base_tab == "train")
 	_button("tab:routes", Rect2(252, 246, 218, 88), "LES ROUTES", "", true, base_tab == "routes")
 	_button("tab:crew", Rect2(480, 246, 216, 88), "L’ÉQUIPAGE", "", true, base_tab == "crew")
@@ -511,29 +519,32 @@ func _draw_locomotive(origin: Vector2) -> void:
 		draw_circle(origin + Vector2(93 - shift * 0.5, -21 - shift), 8 + shift * 0.16, Color(0.40, 0.54, 0.57, (1.0 - shift / 52.0) * 0.4))
 
 func _draw_routes() -> void:
-	_text("QUEL RISQUE POUVEZ-VOUS PRENDRE ?", Vector2(28, 362), 18, AMBER)
-	_paragraph("Le carburant affiché inclut le poids des wagons. Pensez aussi aux besoins de l’équipage à chaque départ.", Vector2(28, 395), 660, 18, MUTED, 26, 2)
-	var alive = 0
-	for member in model.data.get("crew", []):
-		if float(member.get("hp", 0)) > 0: alive += 1
-	_text("Par départ : " + str(alive) + " rations · " + str(int(ceil(float(alive) / 2.0))) + " eaux (+2 si serre active)", Vector2(28, 449), 16, AMBER)
+	_draw_region_map()
+	var viewed = _region(_inspected_region())
+	_panel(Rect2(24, 448, 672, 151), PANEL, Color(viewed.accent).darkened(0.35), 14)
+	_text(str(viewed.name), Vector2(43, 479), 25, Color(viewed.accent))
+	var status = "RÉGION COURANTE" if _inspected_region() == _region_index() else ("TRAVERSÉE" if _inspected_region() < _region_index() else "APERÇU · VERROUILLÉE")
+	var width = font.get_string_size(status, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x
+	_text(status, Vector2(675 - width, 471), 12, MUTED)
+	_paragraph(str(viewed.description) + "\n" + str(viewed.hazard_name) + " : " + str(viewed.hazard_description), Vector2(43, 511), 630, 18, MUTED, 23, 4)
+	var needs = model.departure_needs()
+	_text("DÉPART NET : " + str(int(needs.get("food", 0))) + " rations · " + str(int(needs.get("water", 0))) + " eaux · serre comprise", Vector2(28, 624), 17, AMBER)
 	var routes = model.data.get("routes", [])
-	for i in range(mini(routes.size(), 3)):
+	for i in range(routes.size()):
 		var route = routes[i]
-		var rect = Rect2(24, 468 + i * 226, 672, 208)
+		var rect = Rect2(24, 637 + i * 200, 672, 188)
 		_panel(rect, PANEL, LINE, 15)
-		_text("0" + str(i + 1) + "   " + str({"depot":"DÉPÔT", "farm":"VERGER", "well":"SOURCE", "fort":"FORT"}.get(str(route.get("kind", "")), "ROUTE")), rect.position + Vector2(21, 32), 15, AMBER)
-		_text(str(route.get("name", "Destination")), rect.position + Vector2(21, 72), 28)
-		_paragraph(str(route.get("description", "")), rect.position + Vector2(21, 105), 620, 18, MUTED, 25, 2)
-		_text("Lot annoncé : " + _cost(route.get("loot", {})), rect.position + Vector2(21, 150), 16, MINT)
+		_text("0" + str(i + 1) + " · " + str(route.get("kind", "ROUTE")).to_upper(), rect.position + Vector2(20, 25), 14, _accent())
+		_text(str(route.get("name", "Destination")), rect.position + Vector2(20, 59), 25)
+		var details = "Lot du poste : " + _cost(route.get("loot", {})) + "\n" + ("Gardien à vaincre avant de valider le poste." if route.get("kind") == "fort" else "Ramenez le lot au TRAIN pour l’acquérir.")
+		_paragraph(details, rect.position + Vector2(20, 86), 461, 17, MUTED, 21, 3)
 		var cost = int(route.get("fuel", 0))
 		var danger = int(route.get("danger", 1))
-		_text(str(cost) + " CARBURANT", rect.position + Vector2(21, 180), 17, AMBER)
-		_text("DANGER " + "!".repeat(clampi(danger, 1, 5)), rect.position + Vector2(241, 180), 17, RED if danger >= 3 else MINT)
-		buttons.append({"id":"route:" + str(i), "rect":rect, "enabled":float(model.data.get("resources", {}).get("fuel", 0)) >= cost})
-		_button("route:" + str(i), Rect2(rect.position + Vector2(455, 152), Vector2(195, 43)), "PARTIR", "", float(model.data.get("resources", {}).get("fuel", 0)) >= cost, true)
-	if int(model.data.get("step", 0)) >= 7:
-		_text("DERNIER TRONÇON · LA MENACE DU COL VOUS ATTEND", Vector2(28, 1184), 15, RED)
+		_text(str(cost) + " CARBURANT · poids et terrain inclus", rect.position + Vector2(20, 157), 16, AMBER)
+		_text("DANGER " + "!".repeat(clampi(danger, 1, 5)), rect.position + Vector2(20, 179), 16, RED if danger >= 3 else MINT)
+		_button("route:" + str(i), Rect2(rect.position + Vector2(498, 77), Vector2(154, 88)), "PARTIR", "", float(model.data.get("resources", {}).get("fuel", 0)) >= cost, true)
+	if _local_halt() == Model.STEPS_PER_REGION:
+		_text("FIN DE RÉGION · " + str(_region().boss_name).to_upper(), Vector2(28, 1262), 15, RED)
 
 func _draw_crew() -> void:
 	_text("CEUX QUI COMPTENT SUR VOUS", Vector2(28, 361), 20)
@@ -575,7 +586,8 @@ func _draw_expedition() -> void:
 		return
 	var route = model.data.get("route", {})
 	var hero = _active_hero()
-	_text(str(route.get("name", "EXPÉDITION")), Vector2(26, 208), 26)
+	_fit_text(str(route.get("name", "EXPÉDITION")), Vector2(26, 208), 480, 25)
+	_text("R" + str(_region_index() + 1) + "/" + str(Model.REGIONS.size()) + " · H" + str(_local_halt()) + "/" + str(Model.STEPS_PER_REGION), Vector2(520, 208), 16, _accent())
 	_text(str(hero.get("name", "Éclaireur")) + "  " + str(int(hero.get("hp", 0))) + "/" + str(int(hero.get("max_hp", 100))) + " PV", Vector2(26, 238), 18, MINT)
 	var capacity = int(expedition.get("capacity", 6))
 	var carried = expedition.get("carried", {})
@@ -601,16 +613,15 @@ func _draw_expedition() -> void:
 			if not explored:
 				continue
 			var wall = int(grid[y][x]) == 1
-			var kind = str(route.get("kind", "depot"))
-			var floor_color = {"farm":Color("#293b31"), "well":Color("#1c3546"), "fort":Color("#352b31")}.get(kind, Color("#1d3339"))
-			var color = Color("#394b50") if wall else floor_color
+			var color = Color(_region().wall) if wall else Color(_region().floor)
 			if not lit:
 				color = color.darkened(0.72)
 			draw_rect(Rect2(point + Vector2(1, 1), Vector2.ONE * (tile - 2)), color)
 			if wall and lit:
-				draw_line(point + Vector2(3, 4), point + Vector2(tile - 3, 4), Color("#69817f"), 2)
+				draw_line(point + Vector2(3, 4), point + Vector2(tile - 3, 4), Color(_region().wall).lightened(0.25), 2)
 			if not wall and lit and (x * 11 + y * 3) % 4 == 0:
 				draw_line(point + Vector2(8, tile * 0.7), point + Vector2(16, tile * 0.7 - 5), Color("#304a4f"), 1)
+	_draw_hazards(expedition, origin, tile)
 	var exit_cell = expedition.get("exit", {"x":1,"y":1})
 	var exit_point = origin + Vector2(float(exit_cell.get("x", 1)) + 0.5, float(exit_cell.get("y", 1)) + 0.5) * tile
 	if _cell_seen(seen, int(exit_cell.get("x", 1)), int(exit_cell.get("y", 1))):
@@ -649,6 +660,8 @@ func _draw_expedition() -> void:
 				draw_rect(danger_rect, RED, false, 2)
 		var point = origin + Vector2(ex + 0.5, ey + 0.5) * tile
 		var boss = bool(enemy.get("boss", false)) or str(enemy.get("kind", "")) == "boss"
+		if boss:
+			_center(str(enemy.get("name", _region().boss_name)), Rect2(point.x - 115, point.y - tile * 0.75, 230, 28), 14, _accent())
 		var radius = tile * (0.38 if boss else 0.29)
 		draw_circle(point, radius, Color("#7c5554"))
 		draw_circle(point + Vector2(-radius * 0.3, -4), 3, RED)
@@ -660,9 +673,11 @@ func _draw_expedition() -> void:
 	draw_circle(player_point + Vector2(0, -4), tile * 0.14, PAPER)
 	draw_circle(player_point + Vector2(aim) * tile * 0.3, 5, AMBER)
 	var end_y = origin.y + height * tile
-	_text("ROUGE : FRAPPE AU PROCHAIN TOUR", Vector2(27, end_y + 24), 14, RED)
-	var status = "Objectif accompli : ramenez votre butin au train." if bool(expedition.get("objective_done", false)) else "Repérez le signal. Les caches sont facultatives."
-	_paragraph(status, Vector2(27, end_y + 54), 661, 18, MINT if bool(expedition.get("objective_done", false)) else MUTED, 24, 2)
+	_text("CADRE ROUGE : FRAPPE AU PROCHAIN TOUR", Vector2(27, end_y + 23), 13, RED)
+	_text(_hazard_legend(expedition), Vector2(27, end_y + 45), 16, _accent())
+	var boss = _visible_boss(expedition)
+	var status = str(boss.get("name", _region().boss_name)) + " · " + str(int(boss.get("hp", 0))) + " PV" if not boss.is_empty() else ("Poste validé : revenez au TRAIN avec le butin." if bool(expedition.get("objective_done", false)) else "Repérez le poste. Les caches sont facultatives.")
+	_paragraph(status, Vector2(27, end_y + 69), 661, 18, RED if not boss.is_empty() else MINT if bool(expedition.get("objective_done", false)) else MUTED, 23, 1)
 	var loot_text = _cost(carried)
 	if loot_text.is_empty():
 		loot_text = "Sac vide · touchez une cache, puis INTERAGIR."
@@ -687,32 +702,33 @@ func _dim() -> void:
 func _draw_event() -> void:
 	_dim()
 	var event = model.data.get("pending_event", {})
-	_text("CHAQUE DÉCISION LAISSE UNE TRACE", Vector2(44, 118), 17, AMBER)
+	_text("ESCALE DE RÉGION · " + str(_region_index() + 1) + "/" + str(Model.REGIONS.size()) if event.get("context") == "region" else "CHAQUE DÉCISION LAISSE UNE TRACE", Vector2(44, 118), 17, _accent())
 	_paragraph(str(event.get("title", "Un choix à faire")), Vector2(44, 183), 627, 36, PAPER, 45, 3)
 	_paragraph(str(event.get("text", "")), Vector2(44, 325), 627, 23, MUTED, 34, 7)
 	var choices = event.get("choices", [])
 	for i in range(mini(choices.size(), 3)):
 		var choice = choices[i]
 		var rect = Rect2(32, 620 + i * 174, 656, 155)
-		var requirement = str(choice.get("requires", ""))
-		var affordable = _can_pay(choice.get("cost", {})) and (requirement.is_empty() or requirement in model.data.get("train", {}).get("slots", []))
+		var reason = _event_choice_reason(choice)
+		var affordable = reason.is_empty()
 		_panel(rect, PANEL, LINE, 14)
 		_paragraph(str(i + 1) + ". " + str(choice.get("label", "Choisir")), rect.position + Vector2(20, 34), 612, 25, PAPER if affordable else MUTED, 30, 2)
 		_paragraph(str(choice.get("description", "")), rect.position + Vector2(20, 81), 612, 18, MUTED, 25, 2)
-		_text(_cost(choice.get("cost", {})), rect.position + Vector2(20, 136), 17, AMBER if affordable else RED)
-		buttons.append({"id":"event:" + str(i),"rect":rect,"enabled":affordable})
+		var cost_text = _cost(choice.get("cost", {}))
+		_text(("Sans coût" if cost_text.is_empty() else cost_text) if affordable else reason, rect.position + Vector2(20, 136), 17, AMBER if affordable else RED)
+		buttons.append({"id":"event:" + str(i),"rect":rect,"enabled":affordable,"reason":reason})
 	_center("Un coût affiché est payé une seule fois au choix.", Rect2(32, 1154, 656, 35), 17, MUTED)
 
 func _draw_ending(won: bool) -> void:
 	if keyart:
 		draw_texture_rect(keyart, Rect2(-350, 192, 1420, 740), false, Color(0.5, 0.6, 0.6))
 	draw_rect(Rect2(0, 500, 720, 780), Color(0.04, 0.08, 0.10, 0.90))
-	_text("LE COL RÉPOND." if won else "LE CONVOI S’IMMOBILISE.", Vector2(35, 617), 35, AMBER if won else RED)
+	_text("L’AUBE RÉPOND." if won else "LE CONVOI S’IMMOBILISE.", Vector2(35, 617), 35, AMBER if won else RED)
 	var ending = str(model.data.get("ending", model.data.get("reason", "")))
 	if ending.is_empty():
-		ending = "La première région est traversée. Votre train a survécu à la brume." if won else "Les réserves ou le convoi n’ont pas tenu. Un autre itinéraire reste possible."
+		ending = str(Model.REGIONS.size()) + " régions traversées. Votre convoi a atteint le " + str(Model.REGIONS.back().name) + "." if won else "Les réserves ou le convoi n’ont pas tenu. Un autre itinéraire reste possible."
 	_paragraph(ending, Vector2(36, 680), 648, 24, PAPER, 35, 5)
-	_text(str(int(model.data.get("step", 0))) + " étapes · " + str(int(model.data.get("hull", 0))) + " % de coque", Vector2(36, 910), 22, MUTED)
+	_text(str(int(model.data.get("step", 0))) + " / " + str(Model.TOTAL_STEPS) + " haltes · " + str(int(model.data.get("hull", 0))) + " % de coque", Vector2(36, 910), 22, MUTED)
 	_button("new", Rect2(32, 1005, 656, 88), "UN NOUVEAU VOYAGE", "Essayez un autre convoi.", true, true)
 	_button("home", Rect2(32, 1110, 656, 88), "RETOUR AU TITRE")
 
@@ -730,9 +746,9 @@ func _draw_help() -> void:
 	_text("GUIDE DE VOYAGE", Vector2(36, 87), 34, AMBER)
 	var sections = [
 		["01 · PRÉPARER", "Trois emplacements, six modules : votre train ne peut pas tout faire. Chaque wagon alourdit le trajet. Conservez du carburant et de quoi nourrir l’équipage."],
-		["02 · CHOISIR SA ROUTE", "Comparez le carburant, le danger et les réserves espérées. Les destinations et les événements changent à chaque voyage."],
-		["03 · EXPLORER", "Tapotez une direction autour du héros, les flèches ou glissez. Chaque déplacement joue un tour. Une case rouge sera frappée au prochain tour : écartez-vous."],
-		["04 · RAPPORTER", "INTERAGIR ouvre les caches et active les signaux. Le sac est limité : choisissez votre prise. Revenez sur la case TRAIN et interagissez pour conserver le butin."],
+		["02 · CHOISIR SA ROUTE", str(Model.REGIONS.size()) + " régions, " + str(Model.STEPS_PER_REGION) + " haltes chacune. La carte indique votre progression ; regarder une région verrouillée ne permet pas de s’y rendre. Les coûts de départ incluent le terrain et les wagons."],
+		["03 · EXPLORER", "Tapotez autour du héros, les flèches ou glissez. Chaque déplacement joue un tour. Les cases hachurées coûtent les PV indiqués. Un cadre rouge annonce une frappe au prochain tour."],
+		["04 · RAPPORTER", "Chaque fin de région a son gardien. INTERAGIR active les postes et les caches ; revenez au TRAIN pour rapporter le butin. Après le gardien, une escale prépare la région suivante."],
 		["05 · SAVOIR RENONCER", "REPLI ramène l’éclaireur avec des blessures et sans butin. Une attaque lointaine consomme une munition. Un soin vaut parfois plus qu’un trésor."]
 	]
 	var y = 150.0
@@ -775,7 +791,102 @@ func _draw_arrival() -> void:
 	if keyart:
 		draw_texture_rect(keyart, Rect2(-260, 224, 1240, 620), false, Color(0.7, 0.8, 0.8))
 	_panel(Rect2(24, 762, 672, 387), INK, LINE, 18)
-	_text("LE TRAIN S’ARRÊTE", Vector2(44, 807), 20, AMBER)
+	_text("HALTE " + str(_local_halt()) + "/" + str(Model.STEPS_PER_REGION) + " · " + str(_region().name).to_upper(), Vector2(44, 807), 18, _accent())
 	_paragraph(str(model.data.get("route", {}).get("name", "Nouvelle escale")), Vector2(44, 859), 628, 32, PAPER, 40, 2)
 	_paragraph("Choisissez ce que vous rapporterez. Les réserves du trajet ont été consommées ; le butin ne sera acquis qu’au retour au train.", Vector2(44, 951), 628, 22, MUTED, 31, 3)
 	_button("continue", Rect2(44, 1056, 632, 88), "PARTIR EN EXPÉDITION", "", true, true)
+
+func _region_index() -> int:
+	return clampi(int(model.data.get("region_index", 0)), 0, Model.REGIONS.size() - 1)
+
+func _region(index: int = -1) -> Dictionary:
+	return Model.REGIONS[_region_index() if index < 0 else clampi(index, 0, Model.REGIONS.size() - 1)]
+
+func _accent() -> Color:
+	return Color(_region().accent)
+
+func _local_halt() -> int:
+	if int(model.data.get("step", 0)) >= Model.TOTAL_STEPS:
+		return Model.STEPS_PER_REGION
+	return clampi(int(model.data.get("step", 0)) - _region_index() * Model.STEPS_PER_REGION + 1, 1, Model.STEPS_PER_REGION)
+
+func _progress_text() -> String:
+	return "Région " + str(_region_index() + 1) + "/" + str(Model.REGIONS.size()) + " · Halte " + str(_local_halt()) + "/" + str(Model.STEPS_PER_REGION) + " · " + str(int(model.data.get("step", 0))) + "/" + str(Model.TOTAL_STEPS) + " accomplies"
+
+func _inspected_region() -> int:
+	return _region_index() if inspected_region < 0 else clampi(inspected_region, 0, Model.REGIONS.size() - 1)
+
+func _draw_region_map() -> void:
+	var count = Model.REGIONS.size()
+	var width = (672.0 - float(count - 1) * 10.0) / float(count)
+	for i in range(count):
+		var region = _region(i)
+		var accent = Color(region.accent)
+		var rect = Rect2(24 + i * (width + 10), 350, width, 88)
+		var current = i == _region_index()
+		var completed = i < _region_index() or model.data.get("phase") == "won"
+		_panel(rect, Color(region.floor).darkened(0.18) if current else PANEL, accent if i == _inspected_region() else LINE, 12)
+		if current:
+			draw_rect(Rect2(rect.position + Vector2(5, 79), Vector2(width - 10, 4)), accent)
+		var words = str(region.name).split(" ")
+		_center(str(i + 1) + " · " + words[0], Rect2(rect.position + Vector2(3, 9), Vector2(width - 6, 25)), 16, accent if current or completed else MUTED)
+		_center(words[words.size() - 1], Rect2(rect.position + Vector2(3, 33), Vector2(width - 6, 25)), 17, PAPER if current or completed else MUTED)
+		_center("ICI" if current else "TRAVERSÉE" if completed else "VERROUILLÉE", Rect2(rect.position + Vector2(3, 61), Vector2(width - 6, 20)), 11, accent if current else MUTED)
+		buttons.append({"id":"region:" + str(i), "rect":rect, "enabled":true})
+
+func _visible_hazards(expedition: Dictionary) -> Array:
+	var visible: Array = []
+	for hazard in expedition.get("hazards", []):
+		if _cell_seen(expedition.get("visible", []), int(hazard.get("x", -1)), int(hazard.get("y", -1))):
+			visible.append(hazard)
+	return visible
+
+func _visible_boss(expedition: Dictionary) -> Dictionary:
+	for enemy in expedition.get("enemies", []):
+		if bool(enemy.get("boss", false)) and _cell_seen(expedition.get("visible", []), int(enemy.get("x", -1)), int(enemy.get("y", -1))):
+			return enemy
+	return {}
+
+func _hazard_legend(expedition: Dictionary) -> String:
+	var costs: Array[int] = []
+	for hazard in _visible_hazards(expedition):
+		var damage = int(hazard.get("damage", 0))
+		if not damage in costs: costs.append(damage)
+	costs.sort()
+	if costs.is_empty():
+		return str(_region().hazard_name) + " : repérez les cases hachurées."
+	var damage = str(costs[0]) if costs.size() == 1 else str(costs[0]) + "–" + str(costs.back())
+	return str(_region().hazard_name) + " : −" + damage + " PV par pas · hachures + chiffre"
+
+func _draw_hazards(expedition: Dictionary, origin: Vector2, tile: float) -> void:
+	for hazard in _visible_hazards(expedition):
+		var point = origin + Vector2(int(hazard.x), int(hazard.y)) * tile
+		var color = _accent()
+		var rect = Rect2(point + Vector2(4, 4), Vector2.ONE * (tile - 8))
+		draw_rect(rect, Color(color, 0.16))
+		for line in range(3):
+			var shift = float(line) * 11.0
+			draw_line(point + Vector2(7 + shift, 8), point + Vector2(15 + shift, 20), Color(color, 0.75), 2, true)
+		_text("−" + str(int(hazard.damage)), point + Vector2(6, tile - 8), 15, PAPER)
+		_text("!", point + Vector2(tile - 15, 18), 16, color)
+
+func _event_choice_reason(choice: Dictionary) -> String:
+	var requirement = str(choice.get("requires", ""))
+	if not requirement.is_empty() and not requirement in model.data.get("train", {}).get("slots", []):
+		return "Nécessite : " + str(Model.MODULES.get(requirement, {}).get("name", requirement))
+	if choice.get("effects", {}).get("join", false):
+		var crew = model.data.get("crew", [])
+		for member in crew:
+			if str(member.get("id", "")) == "ilyan":
+				return "Ilyan est déjà à bord."
+		if crew.size() >= int(model.data.get("limits", {}).get("crew", 3)):
+			return "Équipage complet : aucune place disponible."
+	if not _can_pay(choice.get("cost", {})):
+		return "Ressources insuffisantes : " + _cost(choice.get("cost", {}))
+	return ""
+
+func _fit_text(value: String, point: Vector2, width: float, pixels: int = 25, color: Color = PAPER) -> void:
+	var actual = pixels
+	while actual > 18 and font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, actual).x > width:
+		actual -= 1
+	_text(value, point, actual, color)
