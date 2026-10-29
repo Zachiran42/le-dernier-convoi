@@ -2,31 +2,44 @@
 
 **Un train pour refuge. Une raison de continuer.**
 
-Jeu solo de survie et de stratégie en 2D, conçu pour Android hors ligne. Le convoi traverse la **Vallée des Cendres** : choisir un embranchement, partir en expédition, ramener des ressources, aménager les wagons, puis reprendre la route.
+Jeu solo de survie et de stratégie en 2D, conçu pour Android hors ligne. Le convoi traverse **cinq régions, de la Vallée des Cendres au Bastion de l’Aube** : choisir un embranchement, partir en expédition, ramener des ressources, aménager les wagons, puis reprendre la route.
 
-**Version 0.1.0 — première région jouable · Code et créations originales sous MIT**
+**Version 0.2.0 — cinq régions, quarante étapes · Code et créations originales sous MIT**
 
 - [Page du jeu et téléchargement Android](https://zachiran42.github.io/le-dernier-convoi/)
-- [Jouer dans le navigateur](https://zachiran42.github.io/le-dernier-convoi/play/index.html)
-- [APK de développement signé](https://github.com/Zachiran42/le-dernier-convoi/releases/download/v0.1.0/le-dernier-convoi-0.1.0.apk)
+- [Jouer dans le navigateur](https://zachiran42.github.io/le-dernier-convoi/play/index.html?v=0.2.0)
+- [APK 0.2.0 de développement signé](https://github.com/Zachiran42/le-dernier-convoi/releases/download/v0.2.0/le-dernier-convoi-0.2.0.apk)
 - [Signaler un problème](https://github.com/Zachiran42/le-dernier-convoi/issues)
 
 ![Le train-refuge traverse un viaduc au milieu d’une vallée brumeuse.](art/key-art.png)
 
 *Illustration de couverture originale, créée avec ImageGen. Il s’agit d’une illustration d’ambiance, pas d’une capture de jeu.*
 
-## Le premier voyage
+## La grande traversée
 
-Ce jalon couvre une région, huit étapes et une menace finale. Il met en relation les choix de route, les réserves du train, les expéditions tactiques et l’aménagement du convoi.
+La campagne compte **cinq régions de huit étapes chacune, soit quarante étapes au total**, avec un gardien à la fin de chaque région. Les réserves, l’état du train, les modules et l’équipage accompagnent le voyage jusqu’à son terme.
+
+| Région | Étapes de campagne | Danger | Gardien |
+|---|---|---|---|
+| Vallée des Cendres | 1 à 8 | Braises sous la cendre | Gardien des Cendres |
+| Marais de Verre | 9 à 16 | Flaques toxiques évitables | Veilleur de Verre |
+| Désert des Antennes | 17 à 24 | Sol brûlant et besoin d’eau accru | Sentinelle des Antennes |
+| Crêtes du Givre | 25 à 32 | Gel et coût en carburant accru | Brise-Givre |
+| Bastion de l’Aube | 33 à 40 | Zones électriques | Vigie de l’Aube |
+
+Les lieux, les cartes et les événements varient selon la région. Les dangers au sol peuvent être contournés ; ils infligent des dégâts lorsqu’on entre sur leur case. Le désert demande une eau supplémentaire au départ ; dans les crêtes, le coût annoncé des routes inclut un carburant supplémentaire.
+
+Après chacun des quatre premiers gardiens, revenir au train ouvre une **escale de région** : acheter des fournitures avec de la ferraille, payer une réparation ou poursuivre gratuitement sans bonus. Le cinquième gardien termine la campagne.
 
 - **Choisir la route :** comparer carburant, danger et ressources annoncées.
 - **Aménager le train :** trois emplacements pour six modules — serre, citerne, atelier, blindage, infirmerie et dortoir.
 - **Gérer les réserves :** carburant, rations, eau, ferraille, médicaments et munitions.
+- **Veiller sur l’équipage :** Mira, Basile et Edda conservent leurs rôles et leurs blessures au fil des régions.
 - **Explorer :** déplacements et actions au tour par tour sur une grille, combats, récupération et retour au point d’entrée.
 - **Assumer le repli :** abandonner une expédition laisse le butin en cours derrière soi.
 - **Reprendre une campagne :** sauvegarde locale, indépendante d’un compte et d’un serveur.
 
-Les coûts et les effets chiffrés apparaissent dans le jeu. Le contenu et l’équilibre de cette première version sont destinés à évoluer avec les retours de jeu.
+Les coûts et les effets chiffrés apparaissent dans le jeu. Le contenu et l’équilibre continuent d’évoluer avec les retours de jeu.
 
 ## Commandes
 
@@ -49,6 +62,8 @@ Télécharger l’APK depuis la page ou le dépôt, puis ouvrir le fichier sur A
 Tous les fichiers nécessaires au jeu Android sont embarqués dans l’application. La page et la démo web nécessitent un chargement dans le navigateur. Le stockage de la démo dépend du navigateur et de ses réglages ; sa sauvegarde est indépendante de celle de l’APK.
 
 La campagne est enregistrée localement dans `user://convoi-save.json`. Effacer les données de l’application ou du site peut supprimer la progression.
+
+Les sauvegardes **0.1.0 sont reprises sans repartir à zéro** : réserves, équipage, modules et progression sont conservés. Une expédition en cours garde son terrain d’origine. Une ancienne victoire dans la vallée ouvre l’escale vers les Marais de Verre, avec un **ravitaillement gratuit de reprise utilisable une seule fois**, à choisir ou à laisser. Il permet de relancer le voyage sans réinitialiser le convoi. Cette offre concerne uniquement les anciennes victoires 0.1.0 ; les escales habituelles de la campagne 0.2.0 conservent leurs coûts. Une ancienne défaite conserve son état. La [Release 0.1.0](https://github.com/Zachiran42/le-dernier-convoi/releases/tag/v0.1.0) et son APK restent accessibles.
 
 ## Ouvrir le projet
 
@@ -93,7 +108,7 @@ GitHub Pages utilise la branche `main`, dossier `/docs`. Aucun serveur applicati
 
 Le jalon doit notamment conserver une campagne reprenable, des réserves cohérentes, des choix de route lisibles et des cartes d’expédition praticables. Les validations de génération, de sauvegarde, de combat et de progression accompagnent l’implémentation. Les vérifications sur navigateur et appareil restent complémentaires aux tests de logique.
 
-Une modification du gameplay doit préserver ces invariants et mettre à jour les règles affichées au joueur. Les nouvelles fonctionnalités se construisent sur la boucle complète du premier voyage.
+Une modification du gameplay doit préserver ces invariants et mettre à jour les règles affichées au joueur. Les nouvelles fonctionnalités se construisent sur cette campagne et ses transitions entre régions.
 
 ## Confidentialité et licences
 
@@ -110,4 +125,4 @@ Les scripts et versions figées sont décrits dans [tools/BUILD.md](tools/BUILD.
 La démo web charge le même jeu Godot. Le transport du moteur WebAssembly est compressé pour GitHub Pages ; les modifications et empreintes sont documentées dans [docs/play/TRANSPORT.txt](docs/play/TRANSPORT.txt). Les textes complets des licences du moteur sont inclus dans le projet et dans les exports.
 
 
-[Validation de la version 0.1.0](VALIDATION.md) · [Journal des versions](CHANGELOG.md)
+[Validation de la version](VALIDATION.md) · [Journal des versions](CHANGELOG.md)

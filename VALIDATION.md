@@ -1,31 +1,33 @@
-# Validation — Le Dernier Convoi 0.1.0
+# Validation — Le Dernier Convoi 0.2.0
 
-Version du 29 octobre 2026. Moteur officiel Godot 4.7.2 stable, `ed1daf0bf`.
+Version du 29 octobre 2026. Moteur officiel Godot 4.7.2 stable, ed1daf0bf.
 
-## Règles et sauvegardes
+## Campagne et sauvegardes
 
-18 scénarios de tests réussissent : génération déterministe, reprise JSON et hasard, rejets transactionnels des sauvegardes corrompues, dépenses et remplacement des wagons, recettes et rôles, vivres, soins, visibilité, attaques annoncées, munitions, butin, repli, recrutement et fins de partie.
+27 scénarios de règles passent : les contrôles existants de génération déterministe, visibilité, combat, réserves, modules et sauvegardes, puis les cinq régions, les besoins chiffrés au départ, les terrains dangereux évitables, les cinq gardiens, les quatre escales et la victoire après la quarantième étape. Les dégâts de terrain surviennent à l’entrée ; attendre sur une case ne les répète pas. Les ennemis utilisent aussi leur portée régionale après déplacement.
 
-La visibilité est symétrique entre le héros et les ennemis et respecte les coins fermés. Une défaite par carburant tient compte des possibilités légales d’allègement, de changement de pilote et de fabrication.
+17 campagnes complètes de quarante étapes ont été simulées par actions légales : huit graines sans wagon de départ, puis trois graines avec chacun des modules serre, blindage et atelier. Le bot gère les réserves, fabrique, répare ou recycle ses modules si nécessaire ; aucun plein ni soin gratuit n’est injecté dans ces simulations. Cela vérifie la possibilité de gagner, sans garantir que chaque stratégie réussira.
 
-17 campagnes complètes ont été simulées par actions légales jusqu’à la victoire : huit graines de base, puis trois graines avec chacun des modules de départ serre, blindage et atelier. L’attente passive mène à la défaite.
+Cinq vrais formats de sauvegarde de la version publiée 0.1.0 sont lus dans les tests : base, choix de trajet, expédition, victoire et défaite. Une ancienne victoire ouvre les Marais de Verre et une offre facultative unique de reprise. L’offre n’est jamais régénérée après utilisation. Les sauvegardes corrompues sont refusées sans modifier la partie actuelle, notamment une fausse version 0.1 au-delà de son ancienne limite de huit étapes.
 
-## Interface et chaîne de compilation
+## Interface et compilation
 
-125 assertions d’intégration valident la sauvegarde et la reprise, les protections des fenêtres modales, les commandes clavier, les coordonnées tactiles, les coûts affichés de fabrication et les limites des boutons. Les actions tactiques offrent une cible d’au moins 44 pixels de haut pour un écran large de 360 pixels.
+402 assertions d’intégration passent : sauvegarde et reprise, protections modales, commandes clavier/tactiles, coûts de fabrication, cinq palettes, atlas sans saut de progression, dangers visibles, titres longs, escales et disponibilité du recrutement. Les commandes tactiques et les cinq boutons de l’atlas font au moins 88 unités logiques de haut, soit 44 pixels pour un écran de 360 pixels de large.
 
-4 tests supplémentaires vérifient les empreintes de téléchargement, l’extraction contrôlée, le rejet des archives corrompues et la détection des erreurs Godot malgré un code de sortie nul.
+Quatre tests de chaîne de compilation passent : empreintes officielles, extraction contrôlée, archives corrompues et erreurs Godot détectées même avec code de sortie nul. Les exports Web et Android réussissent sans erreur de script.
 
-Les exports Android et Web ont réussi localement sans erreur de script. L’écran d’accueil, la gestion du train, la confirmation de construction, les routes, un événement et le départ en expédition ont été contrôlés dans le navigateur.
+Le rendu de l’atlas a été contrôlé dans l’export final. Un harness privé hors dépôt a permis de voir le Bastion et ses dangers, d’essayer les quatre directions et de vérifier le brouillard sur un viewport de 390 × 844, sans lire ni écrire de sauvegarde publique. La vitrine et son atlas sont contrôlés à largeur mobile et bureau. Le harness QA ne fait partie d’aucun fichier publié.
 
 ## APK et ressources
 
-L’APK signé 0.1.0 utilise ARM64, minSdk24 et targetSdk36. Sa signature a été vérifiée. Il ne demande aucune permission, notamment aucune permission Internet. Le code exporté de l’interface, du modèle et les textes de licence sont identiques dans l’APK et le pack Web. Aucun export imbriqué, cache d’éditeur, test ni clé privée n’est embarqué dans les ressources du jeu.
+APK 0.2.0, versionCode2, ARM64, minSdk24 et targetSdk36. La signature est vérifiée et son certificat est identique à celui de l’APK 0.1.0. Aucune permission n’est demandée, notamment aucune permission Internet. Les scripts compilés de l’interface et du modèle et les licences sont identiques entre Android et Web. Aucun cache d’éditeur, test, outil, export imbriqué ni clé privée n’est embarqué.
 
-L’empreinte SHA-256 de l’APK est publiée dans [docs/downloads](docs/downloads/le-dernier-convoi-0.1.0.apk.sha256) et avec la Release.
+SHA-256 APK : 3e3bcec400d7bdd92940a0ad412fdcbef8eac9b81e9d6f0e46b7da9287ed002c
+
+L’empreinte accompagne l’APK dans la Release et dans docs/downloads. Le pack Web porte un nom contenant son empreinte pour éviter la réutilisation du contenu 0.1 en cache.
 
 ## Limites
 
-Aucun téléphone Android physique n’a été utilisé. Le confort tactile, le comportement en mode avion et les performances restent à confirmer sur un appareil réel. La démo requiert WebGL2 et DecompressionStream pour son premier chargement. Les sauvegardes du navigateur et de l’APK sont indépendantes.
+Aucun téléphone Android physique n’a été utilisé. Le confort tactile, le mode avion et les performances restent à confirmer sur appareil réel. La démo requiert WebGL2 et DecompressionStream pour son premier chargement ; ses sauvegardes sont indépendantes de celles de l’APK.
 
-La CI du dépôt reconstruit les deux exports et exécute les tests à chaque modification de main. Ses résultats sont consultables dans l’onglet Actions ; ce rapport décrit les vérifications locales de la version publiée.
+La CI du dépôt reconstruit les deux exports et exécute les tests à chaque modification de main. Ses résultats sont consultables dans Actions ; ce rapport décrit les vérifications locales de cette version.

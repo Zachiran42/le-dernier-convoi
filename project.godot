@@ -1,4 +1,4 @@
-; Le Dernier Convoi — Godot 4.7.2, première région jouable.
+; Le Dernier Convoi — Godot 4.7.2, campagne de cinq régions.
 config_version=5
 
 [application]
@@ -7,7 +7,7 @@ config/description="Un train-refuge dans la brume. Choisissez vos routes, explor
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
 config/icon="res://art/icon.svg"
-config/version="0.1.0"
+config/version="0.2.0"
 
 [display]
 window/size/viewport_width=720
